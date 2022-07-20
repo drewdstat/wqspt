@@ -5,7 +5,7 @@
 #' permutation test to determine the significance of the WQS coefficient. 
 #' 
 #' @param formula An object of class formula. The wqs term must be included in 
-#' the formula (e.g. y ~ wqs + ...).
+#' the formula (e.g., y ~ wqs + ...).
 #' @param data The \code{data.frame} to be used in the WQS regression run. 
 #' @param mix_name A vector with the mixture column names. 
 #' @param q An integer to indicate the number of quantiles to split the mixture 
@@ -25,16 +25,24 @@
 #' @param plan_strategy Evaluation strategy for the plan function. You can choose 
 #' among "sequential", "transparent", "multisession", "multicore", "multiprocess", 
 #' "cluster" and "remote." See gWQS documentation for full details. 
-#' @param ... Other parameters to put into the gwqs function call.
 #' @param b1_constr Logical value that determines whether to apply positive or 
 #' negative constraints in the optimization function for the weight optimization.
-#' @param family A character value: `gaussian` for linear regression, `binomial` 
-#' for logistic regression.
+#' @param family A description of the error distribution and link function to be 
+#' used in the model. This can be a character string naming a family function 
+#' (e.g., "binomial") or a family object (e.g., binomial(link="logit")). 
+#' Currently supported families include gaussian() for linear regression, 
+#' binomial() for regressions with a binary outcome (e.g., logistic regression 
+#' with family = "binomial" or family = binomial(link = "logit")), poisson() 
+#' for Poisson regression, quasipoisson() for quasi-Poisson regression, and 
+#' the character "negbin" for negative binomial regression. Multinomial WQS 
+#' regressions (i.e., family = "multinomial") are not yet supported for the 
+#' permutation test.
 #' @param stop_if_nonsig if TRUE, the function will not proceed with the 
 #' permutation test if the main WQS regression run produces nonsignificant 
 #' p-value.
 #' @param stop_thresh numeric p-value threshold required in order to proceed 
 #' with the permutation test, if `stop_if_nonsig = TRUE`.
+#' @param ... Other parameters to put into the gwqs function call.
 #'
 #' @return \code{wqs_full_perm} returns an object of class `wqs_perm`, which 
 #' contains three sublists: 
@@ -62,7 +70,7 @@
 #'  perm_test_res <- wqs_full_perm(formula = yLBX ~ wqs, data = wqs_data, 
 #'                                 mix_name = PCBs, q = 10, b_main = 5, 
 #'                                 b_perm = 5, b1_pos = TRUE, b1_constr = FALSE, 
-#'                                 niter = 5, seed = 16, plan_strategy = "multicore", 
+#'                                 niter = 4, seed = 16, plan_strategy = "multicore", 
 #'                                 stop_if_nonsig = FALSE)
 #' 
 #'  # Note: The default values of b_main = 1000, b_perm = 200, and niter = 200 
@@ -74,6 +82,11 @@ wqs_full_perm <- function(formula, data, mix_name, q = 10, b_main = 1000,
                           rs = FALSE, niter = 200, seed = NULL, 
                           family = "gaussian", plan_strategy = "multicore",
                           stop_if_nonsig = FALSE, stop_thresh = 0.05, ...){
+  
+  if(family=="multinomial") {
+    stop("The WQS regression permutation test is not yet set up to determine
+          WQS coefficient p-values for multinomial WQS regressions.")
+  }
   
   # run main WQS regression
   gwqs_res_main <- gWQS::gwqs(formula = formula, data = data, mix_name = mix_name, 
@@ -96,12 +109,12 @@ wqs_full_perm <- function(formula, data, mix_name, q = 10, b_main = 1000,
                     perm_test = NULL)
   } else {
     # run permutation test (using wqs_perm function) 
-    results <- wqs_perm(gwqs_res_main, niter = niter, boots = b_perm, 
+    results <- wqs_pt(gwqs_res_main, niter = niter, boots = b_perm, 
                         b1_pos = b1_pos, b1_constr = b1_constr, rs = rs, 
                         plan_strategy = plan_strategy, seed = seed)
   }
   
-  class(results) <- "wqs_perm"
+  class(results) <- "wqs_pt"
   
   results
 }
