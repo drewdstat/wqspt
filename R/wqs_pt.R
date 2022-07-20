@@ -1,12 +1,12 @@
 #' WQS permutation test
 #' 
-#' \code{wqs_perm} takes a `gwqs` object as an input and runs the permutation 
-#' test (Day et al, 2022) to obtain an estimate for the p-value significance for 
+#' \code{wqs_pt} takes a `gwqs` object as an input and runs the permutation 
+#' test (Day et al. 2022) to obtain an estimate for the p-value significance for 
 #' the WQS coefficient.  
 #' 
-#' To use `wqs_perm`, we first need to run an initial WQS regression run while 
+#' To use `wqs_pt`, we first need to run an initial WQS regression run while 
 #' setting `validation=0`. We will use this `gwqs` object as the model argument 
-#' for the `wqs_perm` function. Note that permutation test can currently only 
+#' for the `wqs_pt` function. Note that permutation test can currently only 
 #' take in `gwqs` inputs where `family = "gaussian"` or `family = "binomial"`, 
 #' and it is not currently equipped to handle stratified weights or WQS 
 #' interaction terms.
@@ -42,7 +42,7 @@
 #' This should be the same random seed as used for the main WQS regression run. 
 #' This seed will be saved in the "gwqs_perm" object as "gwqs_perm$seed".
 #'
-#' @return \code{wqs_perm} returns an object of class `wqs_perm`, which contains: 
+#' @return \code{wqs_pt} returns an object of class `wqs_pt`, which contains: 
 #' 
 #' \item{perm_test}{List containing: (1) `pval`: permutation test p-value, (2) (linear 
 #' regression only) `testbeta1`: reference WQS coefficient 
@@ -55,7 +55,7 @@
 #' `family = "binomial"` or if same number of bootstraps are used in permutation 
 #' test WQS regression runs as in the main run).}
 #' @import gWQS ggplot2 viridis cowplot stats methods
-#' @export wqs_perm
+#' @export wqs_pt
 #'
 #' @examples
 #' library(gWQS)
@@ -69,7 +69,7 @@
 #'                  plan_strategy = "multicore", family = "gaussian", seed = 16)
 #' 
 #' # run permutation test
-#' perm_test_res <- wqs_perm(wqs_main, niter = 5, b1_pos = TRUE)
+#' perm_test_res <- wqs_pt(wqs_main, niter = 4, b1_pos = TRUE)
 #' 
 #' # Note: The default value of niter = 200 is the recommended parameter values. 
 #' # This example has a lower niter in order to serve as a shorter test run. 
@@ -79,7 +79,7 @@
 #' Day, D., Sathyanarayana, S., LeWinn, K., Karr, C., Mason, A., Szpiro, A. (2022). 
 #' A Permutation Test-Based Approach to Strengthening Inference on the Effects of 
 #' Environmental Mixtures: Comparison Between Single Index Analytic Methods. 
-#' Under Review. 
+#' Environmental Health Perspectives. Accepted. 
 #' 
 #' Day, D., Collett, B., Barrett, E., ... & Sathyanarayana, S. (2021). Phthalate 
 #' mixtures in pregnancy, autistic traits, and adverse childhood behavioral 
@@ -88,21 +88,15 @@
 #' Loftus, C. T., Bush, N. R., Day, D., ... & LeWinn, K. Z. (2021). Exposure to 
 #' prenatal phthalate mixtures and neurodevelopment in the Conditions Affecting 
 #' Neurocognitive Development and Learning in Early childhood (CANDLE) study. 
-#' Environment international, 150, 106409.
+#' Environment International, 150, 106409.
 #' 
-wqs_perm <- function(model, niter = 200, boots = NULL, b1_pos = TRUE, 
+wqs_pt <- function(model, niter = 200, boots = NULL, b1_pos = TRUE, 
                      b1_constr = FALSE, rs = FALSE, plan_strategy = "multicore", 
                      seed = NULL) {
   
   pbapply::pboptions(type="timer")
   
-  if (is(model, "gwqs")) {
-    if (!model$family$family %in% c("gaussian", "binomial") | 
-        !model$family$link %in% c("identity", "logit")){
-      stop("The permutation test is currently only set up to accomodate the 
-           gaussian(link = 'identity') or binomial(link = 'logit') families.")
-    }
-  } else stop("'model' must be of class 'gwqs' (see gWQS package).")
+  if (!is(model, "gwqs")) stop("'model' must be of class 'gwqs' (see gWQS package).")
   
   mm <- model$fit
   formchar <- as.character(formula(mm))
@@ -142,7 +136,7 @@ wqs_perm <- function(model, niter = 200, boots = NULL, b1_pos = TRUE,
   }
   
   if (model$family$family == "gaussian"){
-    Data <- model$data[model$vindex, -which(names(model$data) %in% c("wqs", "wghts"))]
+    Data <- model$data[, -which(names(model$data) %in% c("wqs", "wghts"))]
     
     # reference WQS regression run 
     if (boots == length(model$bindex)){
@@ -239,8 +233,8 @@ wqs_perm <- function(model, niter = 200, boots = NULL, b1_pos = TRUE,
     }
   } 
   
-  else if (model$family$family == "binomial"){
-    Data <- model$data[model$vindex,]
+  else {
+    Data <- model$data[, -which(names(model$data) %in% c("wqs", "wghts"))]
     
     initialfit <- function(m) {
       newform <- formula(paste0(m, "~", gsub("wqs + ", "", formchar[3], 
@@ -258,7 +252,7 @@ wqs_perm <- function(model, niter = 200, boots = NULL, b1_pos = TRUE,
                             mix_name = model$mix_name, q = nq, b = boots, 
                             rs = rs, validation = 0, 
                             plan_strategy = plan_strategy, b1_pos = b1_pos, 
-                            family = model$family$family, seed = seed,
+                            family = model$family, seed = seed,
                             b1_constr = b1_constr))
     }, error = function(e) NULL, 
     warning = function(e) if (rs == TRUE) message("WQSRS failed") else message("WQS failed"))
@@ -329,13 +323,13 @@ wqs_perm <- function(model, niter = 200, boots = NULL, b1_pos = TRUE,
                   gwqs_perm = ret_ref_wqs, 
                   perm_test = perm_retlist)
   
-  class(results) <- "wqs_perm"
+  class(results) <- "wqs_pt"
   
   results
 }
 
-#' @rawNamespace S3method(print, wqs_perm)
-print.wqs_perm <- function(x, ...){
+#' @rawNamespace S3method(print, wqs_pt)
+print.wqs_pt <- function(x, ...){
   
   cat("Permutation test WQS coefficient p-value: \n", 
       x$perm_test$pval,
@@ -347,8 +341,8 @@ print.wqs_perm <- function(x, ...){
   
 }
 
-#' @rawNamespace S3method(summary, wqs_perm)
-summary.wqs_perm <- function(object, ...){
+#' @rawNamespace S3method(summary, wqs_pt)
+summary.wqs_pt <- function(object, ...){
   
   cat("Permutation test WQS coefficient p-value: \n", 
       object$perm_test$pval,
@@ -360,13 +354,13 @@ summary.wqs_perm <- function(object, ...){
   
 }
 
-#' Plotting method for wqsperm object 
+#' Plotting method for wqspt object 
 #' 
 #' Generates plots to help visualize and summarize WQS permutation test results. 
 #'
-#' @param wqspermresults An object of class `wqs_perm`.
+#' @param wqsptresults An object of class `wqs_pt`.
 #' @param FixedPalette If TRUE, the heatmap color key for the mixture weights has 
-#' ategorical cutoffs with the following categories: <0.1, 0.1 - <0.2, 0.2 - <0.3, 
+#' categorical cutoffs with the following categories: <0.1, 0.1 - <0.2, 0.2 - <0.3, 
 #' and >= 0.3. If false, the heatmap color key is continuous and dependent on the 
 #' weight values.
 #' @param InclKey If TRUE, a horizontal heatmap legend is included at the bottom 
@@ -402,23 +396,18 @@ summary.wqs_perm <- function(object, ...){
 #' 
 #' @export
 #'
-wqsperm_plot <- function(wqspermresults, FixedPalette = FALSE, InclKey = FALSE, 
+wqspt_plot <- function(wqsptresults, FixedPalette = FALSE, InclKey = FALSE, 
                           AltMixName = NULL, AltOutcomeName = NULL, 
                           ViridisPalette = "D", StripTextSize = 14,
                           AxisTextSize.Y = 12, AxisTextSize.X = 12, 
                           LegendTextSize = 14, PvalLabelSize = 5, 
                           HeatMapTextSize = 5) {
   
-  if (is.null(wqspermresults$perm_test)){
-    stop("There are no permutation test results in this wqsperm object because 
-         the naive WQS regression run did not return a significant result and 
-         stop_if_nonsig was set equal to TRUE in the wqsperm call.")
-  }
-  
-  wqs_fam <- wqspermresults$family
+  wqs_fam <- wqsptresults$family
+  if(!is.null(wqs_fam$family)) wqs_fam <- wqs_fam$family
 
-  thisfit <- wqspermresults$gwqs_main$fit
-  b1pos <- wqspermresults$gwqs_main$b1_pos
+  thisfit <- wqsptresults$gwqs_main$fit
+  b1pos <- wqsptresults$gwqs_main$b1_pos
   if (b1pos)
     thisdir <- "Positive"
   else
@@ -431,7 +420,7 @@ wqsperm_plot <- function(wqspermresults, FixedPalette = FALSE, InclKey = FALSE,
   if (wqs_fam == "gaussian"){
     pval <- summary(thisfit)$coef["wqs", "Pr(>|t|)"]
   }
-  else if (wqs_fam == "binomial"){
+  else {
     pval <- summary(thisfit)$coef["wqs", "Pr(>|z|)"]
   }
   
@@ -443,7 +432,7 @@ wqsperm_plot <- function(wqspermresults, FixedPalette = FALSE, InclKey = FALSE,
       LCI = suppressMessages(confint(thisfit)[2, 1]),
       UCI = suppressMessages(confint(thisfit)[2, 2]),
       pval = pval,
-      PTp = wqspermresults$perm_test$pval
+      PTp = wqsptresults$perm_test$pval
     )
   WQSResults$PTlabel <- paste0("PTp=", signif(WQSResults$PTp, 3))
   WQSResults$FacetLabel <- "Coefficient"
@@ -489,13 +478,13 @@ wqsperm_plot <- function(wqspermresults, FixedPalette = FALSE, InclKey = FALSE,
   }
   
   WQSwts <-
-    wqspermresults$gwqs_main$final_weights[wqspermresults$gwqs_main$mix_name, ]
+    wqsptresults$gwqs_main$final_weights[wqsptresults$gwqs_main$mix_name, ]
   WQSwts$FacetLabel <- "Weights"
   WQSwts$Outcome <- WQSResults$Outcome
   WQSwts$Direction <- WQSResults$Direction
   WQSwts$mix_name <-
     factor(as.character(WQSwts$mix_name), 
-           levels = wqspermresults$gwqs_main$mix_name)
+           levels = wqsptresults$gwqs_main$mix_name)
   if (!is.null(AltMixName))
     levels(WQSwts$mix_name) <- AltMixName
   WQSwts$mix_name <-
