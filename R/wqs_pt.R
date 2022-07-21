@@ -96,7 +96,12 @@ wqs_pt <- function(model, niter = 200, boots = NULL, b1_pos = TRUE,
   
   pbapply::pboptions(type="timer")
   
-  if (!is(model, "gwqs")) stop("'model' must be of class 'gwqs' (see gWQS package).")
+  if (is(model, "gwqs")) {
+    if (model$family$family=="multinomial"){
+      stop("The WQS regression permutation test is not yet set up to determine
+          WQS coefficient p-values for multinomial WQS regressions.")
+    }
+  } else stop("'model' must be of class 'gwqs' (see gWQS package).")
   
   mm <- model$fit
   formchar <- as.character(formula(mm))
