@@ -5,11 +5,15 @@
 #' the WQS coefficient.  
 #' 
 #' To use `wqs_pt`, we first need to run an initial WQS regression run while 
-#' setting `validation=0`. We will use this `gwqs` object as the model argument 
-#' for the `wqs_pt` function. Note that permutation test can currently only 
-#' take in `gwqs` inputs where `family = "gaussian"` or `family = "binomial"`, 
-#' and it is not currently equipped to handle stratified weights or WQS 
-#' interaction terms.
+#' setting `validation = 0`. We will use this `gwqs` object as the model argument 
+#' for the `wqs_pt` function. Note that the permutation test is not currently 
+#' equipped to handle stratified weights or WQS interaction terms. It can also
+#' not determine p-values for multinomial (i.e., family = "multinomial") WQS 
+#' regressions or ones in which the family is gaussian() with a link that is not
+#' "identity" (i.e., it cannot accept family = gaussian(link = "log") or 
+#' family = gaussian(link = "inverse")). The accepted families are gaussian(
+#' link = "identity"), binomial() with any link, poisson(link = "log"), 
+#' "negbin", and quasipoisson(link = "log").
 #' 
 #' The argument `boots` is the number of bootstraps for the WQS regression run 
 #' in each permutation test iteration. Note that we may elect a bootstrap count 
@@ -20,14 +24,14 @@
 #'
 #' The arguments `b1_pos` and `rs` should be consistent with the inputs chosen 
 #' in the model object. The seed should ideally be consistent with the seed set 
-#' in the model object, though this is not required.
+#' in the model object for consistency, though this is not required.
 #'
 #' @param model A \code{gwqs} object as generated from the \code{gWQS} package.  
 #' @param niter Number of permutation test iterations. 
-#' @param boots Number of bootstrap samples for each permutation test \code{wqs} 
-#' run. If `boots` is not specified, then we will use the same bootstrap count 
-#' in the permutation test WQS regression runs as that specified in the main WQS 
-#' regression run.
+#' @param boots Number of bootstrap samples for each permutation test WQS 
+#' regression iteration. If `boots` is not specified, then we will use the same 
+#' bootstrap count for each permutation test WQS regression iteration as that 
+#' specified in the main WQS regression run.
 #' @param b1_pos A logical value that indicates whether beta values should be 
 #' positive or negative.
 #' @param b1_constr Logical value that determines whether to apply positive or 
@@ -67,6 +71,8 @@
 #' wqs_main <- gwqs(yLBX ~ wqs, mix_name = PCBs, data = wqs_data, q = 10, 
 #'                  validation = 0, b = 5, b1_pos = TRUE, b1_constr = FALSE,
 #'                  plan_strategy = "multicore", family = "gaussian", seed = 16)
+#' # Note: We recommend niter = 1000 for the main WQS regression. This example
+#' # has a lower number of bootstraps to serve as a shorter test run.
 #' 
 #' # run permutation test
 #' perm_test_res <- wqs_pt(wqs_main, niter = 4, b1_pos = TRUE)
@@ -100,6 +106,11 @@ wqs_pt <- function(model, niter = 200, boots = NULL, b1_pos = TRUE,
     if (model$family$family=="multinomial"){
       stop("The WQS regression permutation test is not yet set up to determine
           WQS coefficient p-values for multinomial WQS regressions.")
+    } else if (model$family$family=="gaussian"&model$family$link!="identity"){
+      stop("The WQS regression permutation test is not yet set up to determine
+          WQS coefficient p-values for gaussian() families with link functions
+          other than 'identity' (i.e., it can't accomodate 'log' or 'inverse'
+          links with a gaussian() family).")
     }
   } else stop("'model' must be of class 'gwqs' (see gWQS package).")
   
