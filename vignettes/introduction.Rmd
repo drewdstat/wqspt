@@ -1,5 +1,5 @@
 ---
-title: "How to use the wqsperm package"
+title: "How to use the wqspt package"
 author: "Drew Day, James Peng"
 date: "5/26/2022"
 output: rmarkdown::html_vignette
@@ -84,7 +84,7 @@ observed outcome variables, obtaining an estimate for the WQS coefficient $\beta
 6. Calculate the p-value by taking the proportion of $\beta_1^*$ values greater than 
 the WQS coefficient estimate obtained in Step 1. 
 
-### Binomial outcome algorithm (logistic regression)
+### Binary or Count outcome algorithms (Generalized linear models)
 
 1. 	Regress each of the $m$ mixture components on all covariates $Z$ and obtain a $n$
 observations x $m$ matrix with columns being the residuals from each of the $m$ 
@@ -112,38 +112,40 @@ $p^*=1-pchisq(fit1^*)-d(fit2),1$).
 Step 4 and divide that by the number of iterations K to calculate the permutation
 test p-value.
 
-# How to use the `wqsperm` package 
+# How to use the `wqspt` package 
 
-The `wqsperm` package builds from the `gWQS` package.
+The `wqspt` package builds from the `gWQS` package.
 
-The two main functions of the `wqsPerm` package are `wqs_perm` and `wqs_full_perm`. 
+The two main functions of the `wqspt` package are `wqs_pt` and `wqs_full_perm`. 
 
-## `wqs_perm`
+## `wqs_pt`
 
 ### Arguments 
 
-`wqs_perm` uses a `gwqs` object (from the `gWQS` [package](https://cran.r-project.org/web/packages/gWQS/gWQS.pdf)) as an input. To use 
-`wqs_perm`, we first need to run an initial *permutation test reference WQS regression*
-run while setting `validation=0`. Note that permutation test can 
-currently only take in `gwqs` inputs where `family = "gaussian(link = "identity")"` or 
-`family = "binomial(link = "logit")"`, and it is not currently equipped to handle stratified 
-weights or WQS interaction terms. 
+`wqs_pt` uses a `gwqs` object (from the `gWQS` [package](https://cran.r-project.org/web/packages/gWQS/gWQS.pdf)) as an input. To use 
+`wqs_pt`, we first need to run an initial *permutation test reference WQS regression*
+run while setting `validation=0`. Note that the permutation test is not currently equipped 
+to handle stratified weights or WQS interaction terms. Also, it cannot determine p-values 
+for multinomial (i.e., family = "multinomial") WQS regressions or ones in which the family 
+is gaussian() with a link that is not "identity" (i.e., it cannot accept family = 
+gaussian(link = "log") or family = gaussian(link = "inverse")). The accepted families are 
+gaussian(link = "identity"), binomial() with any link, poisson(link = "log"), "negbin" for 
+negative binomial, and quasipoisson(link = "log"). 
 
-We will use this `gwqs` object as the `model` argument for the `wqs_perm` 
+We will use this `gwqs` object as the `model` argument for the `wqs_pt` 
 function and set the following additional parameters: 
 
 * `boots`: Number of bootstraps for the WQS regression run in each permutation test iteration. 
 Note that we may elect a bootstrap count `boots` lower than that specified in the 
-`model` object for the sake of efficiency. If we do, `wqs_perm` will run the
-iterated WQS regressions for the permutation test with the lower number of 
-bootstraps. If `boots` is not specified, then the function will use the same 
-bootstrap count in the permutation test iterated WQS regressions as that specified 
-in the main WQS regression.
-* `niter`: Number of permutation test iterations 
+`model` object for the sake of efficiency. If we do, `wqs_pt` will run the
+iterated WQS regressions for the permutation test with the number of bootstraps defined in 
+`boots`. If `boots` is not specified, then the function will use the same bootstrap count 
+in the permutation test iterated WQS regressions as that specified in the main WQS regression.
+* `niter`: Number of permutation test iterations. 
 * `b1_pos`: A logical value that indicates whether beta values should be positive 
-or negative
+or negative.
 * `rs`: A logical value indicating whether the random subset implementation for WQS 
-should be performed ([Curtin 2021](https://www.tandfonline.com/doi/abs/10.1080/03610918.2019.1577971?journalCode=lssp20))
+should be performed ([Curtin 2019](https://www.tandfonline.com/doi/abs/10.1080/03610918.2019.1577971?journalCode=lssp20))
 * `plan_strategy`: Evaluation strategy for the plan function ("sequential", 
 "transparent", "multisession", "multicore", "multiprocess", "cluster",
 or "remote"). See gWQS package documentation for full details.  
@@ -160,11 +162,11 @@ sublists:
 
 * **perm_test**
   * **pval**: permutation test p-value
-  * *Linear regression only*
+  * *Linear regression (family = gaussian(link="identity")) only*
   * **testbeta**: reference WQS coefficient $\beta_1$ value 
   * **betas**: a vector of $\beta_1$ values from each iteration of the permutation 
 test
-  * *Logistic regression only*
+  * *Generalized linear model only*
   * **testpval**: test reference p-value
   * **permpvals**: p-values from null models 
 * **gwqs_main**: main gWQS object (same as `model` input)
@@ -174,7 +176,7 @@ test WQS regression runs as in the main run.)
 
 ### Plotting method
 
-The `wqs_perm` class has a `plot` method to help visualize and summarize WQS 
+The `wqs_pt` class has a `wqspt_plot` method to help visualize and summarize WQS 
 permutation test results. Plots include (1) a forest plot of the beta WQS coefficient 
 with the naive confidence intervals as well as the permutation test p-value and
 (2) a heatmap of the WQS weights for each mixture component. 
@@ -185,8 +187,8 @@ The second function `wqs_full_perm` is a full wrapper which implements the initi
 gWQS regression run and permutation test in one function call. 
 
 To use `wqs_full_perm`, you must specify the same required arguments as needed in 
-the `gwqs` call. Note that permutation test can currently only handle 
-`family = "gaussian(link = "identity")"` or `family = "binomial(link = "logit")"`. 
+the `gwqs` call. As with `wqs_pt`, the accepted families are gaussian(link = "identity"), 
+binomial() with any link, poisson(link = "log"), "negbin", and quasipoisson(link = "log"). 
 
 For the bootstrap count `b` argument, you must specify `b_main`,the number of 
 bootstraps for the *main WQS regression* run and `b_perm`, the number of 
@@ -197,10 +199,10 @@ Finally, you should indicate the number of desired permutation test runs `niter`
 Since the WQS permutation test can be computationally intensive, you can specify 
 `stop_if_nonsig = TRUE` if you do not wish for the permutation test to proceed 
 if the naive main WQS regression run produces an nonsignificant result (if the p-value 
-is below the `stop_thresh` argument, defaulted at 0.05). 
+is below the `stop_thresh` argument, for which the default is 0.05). 
 See *Recommendations for Use* section below.
 
-The `wqs_full_perm` returns an object of class `wqs_perm`, with outputs described 
+The `wqs_full_perm` returns an object of class `wqs_pt`, with outputs described 
 above. 
 
 ## Recommendations for Use 
@@ -209,13 +211,14 @@ We recommend that users only apply the permutation test in cases where the naive
 WQS test approaches significance or near-significance. If the naive test produces 
 a non-significant result, then there likely is no reason to run the permutation 
 test, as it will produce a result which is more conservative than the naive 
-method. This is the strategy that we have applied in our published papers 
+method (i.e., it will have a larger p-value). This is the strategy that we have 
+applied in our published papers 
 ([Loftus 2021](https://www.sciencedirect.com/science/article/pii/S0160412021000337) and 
 [Day 2021](https://www.sciencedirect.com/science/article/pii/S0160412020322856)). 
 
 # Examples 
 
-## Example 1 (using `wqs_perm`)
+## Example 1 (using `wqs_pt`)
 
 This is an example where the WQS permutation test confirms a significant naive 
 result.
@@ -227,7 +230,7 @@ We first produce a simulated dataset with the following parameters:
 
 ```{r, warning = F, message = F, cache = T}
 library(gWQS)
-library(wqsperm)
+library(wqspt)
 
 # simulated dataset
 sim_res1 <- wqs_sim(nmix = 10,
@@ -261,7 +264,7 @@ Finally, we can perform a permutation test on the WQS object.
 
 ```{r, cache = T}
 # run permutation test
-perm_test_res1 <- wqs_perm(wqs_main1, niter = 50, boots = 5, b1_pos = T, seed = 16)
+perm_test_res1 <- wqs_pt(wqs_main1, niter = 50, boots = 5, b1_pos = T, seed = 16)
 ```
 
 Note that the naive WQS regression produces a significant result for the 
@@ -282,11 +285,11 @@ perm_test_res1$perm_test$pval
 Here are the summary plots: 
 
 ```{r, fig.height = 6, cache = T}
-wqsperm_plot(perm_test_res1)$FullPlot
+wqspt_plot(perm_test_res1)$FullPlot
 ```
 
 
-## Example 2 (using `wqs_perm`)
+## Example 2 (using `wqs_pt`)
 
 This is an example where the WQS permutation test goes against a (false positive) 
 significant naive result. 
@@ -324,7 +327,7 @@ wqs_main2 <- gwqs(y ~ wqs, mix_name = mix_names2, data = sim_data2, q = 10, vali
                   seed = 16)
 
 # run permutation test
-perm_test_res2 <- wqs_perm(wqs_main2, niter = 50, boots = 5, b1_pos = T, seed = 16)
+perm_test_res2 <- wqs_pt(wqs_main2, niter = 50, boots = 5, b1_pos = T, seed = 16)
 ```
 
 Note that the naive WQS regression produces a significant result for the 
@@ -345,10 +348,10 @@ perm_test_res2$perm_test$pval
 Here are the summary plots: 
 
 ```{r, fig.height = 6, cache = T}
-wqsperm_plot(perm_test_res2)$FullPlot
+wqspt_plot(perm_test_res2)$FullPlot
 ```
 
-## Example 3 (using `wqsfullperm`)
+## Example 3 (using `wqs_full_perm`)
 
 Using the same data as in Example 1, we run the WQS regression with permutation
 test using the full wrapper `wqs_full_perm` call.
@@ -365,14 +368,14 @@ perm_test_res <- wqs_full_perm(y ~ wqs,
                                seed = 16,
                                plan_strategy = "multicore")
 
-wqsperm_plot(perm_test_res)$FullPlot
+wqspt_plot(perm_test_res)$FullPlot
 ```
 
 
 
-## Example 4 (using `wqsfullperm` on binary outcome example)
+## Example 4 (using `wqs_full_perm` on binary outcome example)
 
-This is an example we apply to the logistic regression version of the WQS 
+This is an example in which we apply the logistic regression version of the WQS 
 permutation test. 
 
 We produce a simulated dataset with the following parameters: 
@@ -391,7 +394,7 @@ sim_res3 <- wqs_sim(nmix = 10,
                     truewts = c(0.15, 0.15, 0.15, 0.15, 0.15,
                                 0.05, 0.05, 0.05, 0.05, 0.05), 
                     q = 10, 
-                    type = "binomial",
+                    family = "binomial",
                     seed = 16)
 
 sim_data3 <- sim_res3$Data
@@ -408,7 +411,7 @@ perm_test_res <- wqs_full_perm(y ~ wqs,
                                plan_strategy = "multicore",
                                family = "binomial")
 
-wqsperm_plot(perm_test_res)$FullPlot
+wqspt_plot(perm_test_res)$FullPlot
 ```
 
 # References
@@ -417,7 +420,7 @@ of weighted quantile sum regression for highly correlated data in a risk analysi
 setting. Journal of Agricultural, Biological, and Environmental Statistics, 20(1), 
 100-120.
 
-* Curtin, P., Kellogg, J., Cech, N., & Gennings, C. (2021). A random subset implementation 
+* Curtin, P., Kellogg, J., Cech, N., & Gennings, C. (2019). A random subset implementation 
 of weighted quantile sum (WQSRS) regression for analysis of high-dimensional mixtures. 
 Communications in Statistics-Simulation and Computation, 50(4), 1119-1134.
 
@@ -425,12 +428,15 @@ Communications in Statistics-Simulation and Computation, 50(4), 1119-1134.
 ... & Sathyanarayana, S. (2021). Phthalate mixtures in pregnancy, autistic traits, 
 and adverse childhood behavioral outcomes. Environment International, 147, 106330.
 
-* Day, D., Sathyanarayana, S., LeWinn, K., Bush, N., Karr, C., Mason, A., Szpiro, A. (2022). A Comparison of Methods for Quantifying Associations with Mixtures of Environmental Chemical Exposures. Under Review.
+* Day, D. B., Sathyanarayana, S., LeWinn, K., Bush, N., Karr, C., Mason, A., Szpiro, A. (2022). 
+A Permutation Test-Based Approach to Strengthening Inference on the Effects of Environmental 
+Mixtures: Comparison Between Single Index Analytic Methods. Environmental Health Perspectives, 
+Accepted.
 
 * Loftus, C. T., Bush, N. R., Day, D. B., Ni, Y., Tylavsky, F. A., Karr, C. J., ... & 
 LeWinn, K. Z. (2021). Exposure to prenatal phthalate mixtures and neurodevelopment 
 in the Conditions Affecting Neurocognitive Development and Learning in Early 
 childhood (CANDLE) study. Environment International, 150, 106409.
 
-* Renzetti, S., Curtin, P., Just, A. C., Bello, G., Gennings, C., & Rsolnp, I. (2021). 
-Package ‘gWQS’.
+* Renzetti, S., Curtin, P., Just, A. C., Bello, G., & Gennings, C. (2021). 
+‘gWQS: Generalized Weighted Quantile Sum Regression’. https://CRAN.R-project.org/package=gWQS.
