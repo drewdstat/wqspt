@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of wqsperm is to implement a permutation test method for the weighted quantile sum (WQS) regression.
+The goal of wqspt is to implement a permutation test method for the weighted quantile sum (WQS) regression.
 
 Weighted quantile sum regression is a statistical technique to evaluate the effect of complex exposure mixtures on an outcome (Carrico et al. 2015). It is a single-index method which estimates a combined mixture sum effect as well as weights determining each individual mixture component’s contributions to the sum effect. However, the model features a statistical power and Type I error (i.e., false positive) rate tradeoff, as there is a machine learning step to determine the weights that optimize the linear model fit. If the full data is used to estimate both the mixture component weights and the regression coefficients, there is high power but also a high false positive rate since coefficient p-values are calculated for a weighted mixture independent variable calculated using weights that have already been optimized to find a large effect.
 
@@ -30,9 +30,9 @@ You can install the development version of wqsperm from [GitHub](https://github.
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("jpspeng/wqsperm")
+devtools::install_github("drewdstat/wqspt")
 ```
 
 ## Usage
 
-Here is a [brief tutorial vignette](http://htmlpreview.github.io/?https://github.com/jpspeng/wqsperm/blob/working/vignettes/introduction.html) on how to use the wqsperm package.  
+Here is a [brief tutorial vignette](http://htmlpreview.github.io/?https://github.com/drewdstat/wqspt/blob/working/vignettes/introduction.html) on how to use the wqsperm package.  
