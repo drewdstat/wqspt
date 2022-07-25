@@ -1,4 +1,4 @@
-Package: wqsperm
+Package: wqspt
 Title: Permutation Test for Weighted Quantile Sum Regression
 Version: 1.0.1
 Author: Drew Day [aut, cre], James Peng [aut], Adam Szpiro [aut]
