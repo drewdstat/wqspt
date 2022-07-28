@@ -44,5 +44,5 @@ devtools::install_github("drewdstat/wqspt")
 ## Usage
 
 Here is a [brief tutorial
-vignette](http://htmlpreview.github.io/?https://github.com/jpspeng/wqspt/blob/main/vignettes/introduction.html)
+vignette](http://htmlpreview.github.io/?https://github.com/drewdstat/wqspt/blob/main/vignettes/introduction.html)
 on how to use the wqspt package.
