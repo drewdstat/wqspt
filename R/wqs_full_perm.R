@@ -30,9 +30,10 @@
 #' @param family A description of the error distribution and link function to be 
 #' used in the model. This can be a character string naming a family function 
 #' (e.g., "binomial") or a family object (e.g., binomial(link="logit")). 
-#' Currently supported families include gaussian() for linear regression, 
-#' binomial() for regressions with a binary outcome (e.g., logistic regression 
-#' with family = "binomial" or family = binomial(link = "logit")), poisson() 
+#' Currently validated families include gaussian(link="identity") for linear regression 
+#' and binomial(link="logit") for logistic regressions with a binary outcome. 
+#' Other families that are accepted by the function but not validated in simulations 
+#' include family = binomial() with any other link function (e.g., "probit"), poisson() 
 #' for Poisson regression, quasipoisson() for quasi-Poisson regression, and 
 #' the character "negbin" for negative binomial regression. Multinomial WQS 
 #' regressions (i.e., family = "multinomial") are not yet supported for the 
