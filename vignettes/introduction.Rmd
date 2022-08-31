@@ -31,10 +31,18 @@ mixture independent variable that was calculated using weights that have already
 been optimized to find a large effect. 
 
 We recently proposed alternative methods based on a permutation test that should 
-reliably allow for both high power and low false positive rate when utilizing WQS.
-The permutation test is a method of obtaining a p-value by simulating the null 
-distribution through permutations of the data ([Loftus 2021](https://www.sciencedirect.com/science/article/pii/S0160412021000337), 
-Drew 2022).
+reliably allow for both high power and low false positive rate when utilizing WQS
+regression. The permutation test is a method of obtaining a p-value by simulating 
+the null distribution through permutations of the data. The permutation test 
+algorithm is described more in detail and validated in [Day et al. 2022](https://ehp.niehs.nih.gov/doi/10.1289/EHP10570). 
+The version of this permutation test used for a continuous outcome 
+variable has been applied in [Loftus et al. 2021](https://www.sciencedirect.com/science/article/pii/S0160412021000337), 
+[Day et al. 2021](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9291724/), 
+[Wallace et al. 2022](https://www.sciencedirect.com/science/article/pii/S0160412021006644), 
+[Barrett et al. 2022](https://www.sciencedirect.com/science/article/pii/S0160412022000034),
+and [Freije et al. 2022](https://www.sciencedirect.com/science/article/pii/S0160412022001726).
+Another version of the permutation test adapted for logistic WQSr with a binary outcome
+variable is applied in [Loftus et al. 2022](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4102800).
 
 ## About WQS 
 
@@ -124,13 +132,10 @@ The two main functions of the `wqspt` package are `wqs_pt` and `wqs_full_perm`.
 
 `wqs_pt` uses a `gwqs` object (from the `gWQS` [package](https://cran.r-project.org/web/packages/gWQS/gWQS.pdf)) as an input. To use 
 `wqs_pt`, we first need to run an initial *permutation test reference WQS regression*
-run while setting `validation=0`. Note that the permutation test is not currently equipped 
-to handle stratified weights or WQS interaction terms. Also, it cannot determine p-values 
-for multinomial (i.e., family = "multinomial") WQS regressions or ones in which the family 
-is gaussian() with a link that is not "identity" (i.e., it cannot accept family = 
-gaussian(link = "log") or family = gaussian(link = "inverse")). The accepted families are 
-gaussian(link = "identity"), binomial() with any link, poisson(link = "log"), "negbin" for 
-negative binomial, and quasipoisson(link = "log"). 
+run while setting `validation=0`. Note that permutation test can 
+currently only take in `gwqs` inputs where `family = "gaussian(link = "identity")"` or 
+`family = "binomial(link = "logit")"`, and it is not currently equipped to handle stratified 
+weights or WQS interaction terms. 
 
 We will use this `gwqs` object as the `model` argument for the `wqs_pt` 
 function and set the following additional parameters: 
@@ -162,11 +167,11 @@ sublists:
 
 * **perm_test**
   * **pval**: permutation test p-value
-  * *Linear regression (family = gaussian(link="identity")) only*
+  * *Linear WQS regression only*
   * **testbeta**: reference WQS coefficient $\beta_1$ value 
   * **betas**: a vector of $\beta_1$ values from each iteration of the permutation 
 test
-  * *Generalized linear model only*
+  * *Logistic WQS regression only*
   * **testpval**: test reference p-value
   * **permpvals**: p-values from null models 
 * **gwqs_main**: main gWQS object (same as `model` input)
@@ -187,13 +192,14 @@ The second function `wqs_full_perm` is a full wrapper which implements the initi
 gWQS regression run and permutation test in one function call. 
 
 To use `wqs_full_perm`, you must specify the same required arguments as needed in 
-the `gwqs` call. As with `wqs_pt`, the accepted families are gaussian(link = "identity"), 
-binomial() with any link, poisson(link = "log"), "negbin", and quasipoisson(link = "log"). 
+the `gwqs` call. Note that permutation test can currently only handle 
+`family = "gaussian(link = "identity")"` or `family = "binomial(link = "logit")"`.
 
 For the bootstrap count `b` argument, you must specify `b_main`,the number of 
-bootstraps for the *main WQS regression* run and `b_perm`, the number of 
-bootstraps for the *permutation test reference WQS regression* run. As with 
-before, you can choose to set `b_main` $>$ `b_perm` for the sake of efficiency. 
+bootstraps for the *main WQS regression* run, as well as `b_perm`, the number of 
+bootstraps for the *permutation test reference WQS regression* run (linear WQS
+regression only) and each WQS regresison iteration of the permutation test. As 
+with before, you can choose to set `b_main` $>$ `b_perm` for the sake of efficiency. 
 Finally, you should indicate the number of desired permutation test runs `niter`.
 
 Since the WQS permutation test can be computationally intensive, you can specify 
@@ -415,6 +421,11 @@ wqspt_plot(perm_test_res)$FullPlot
 ```
 
 # References
+* Barrett, E. S., Corsetti, M., Day, D., Thurston, S. W., Loftus, C. T., Karr, C. J., ...
+& Sathyanarayana, S. (2022). Prenatal phthalate exposure in relation to placental 
+corticotropin releasing hormone (pCRH) in the CANDLE cohort. Environment International, 
+160, 107078.
+
 * Carrico, C., Gennings, C., Wheeler, D. C., & Factor-Litvak, P. (2015). Characterization 
 of weighted quantile sum regression for highly correlated data in a risk analysis 
 setting. Journal of Agricultural, Biological, and Environmental Statistics, 20(1), 
@@ -428,15 +439,28 @@ Communications in Statistics-Simulation and Computation, 50(4), 1119-1134.
 ... & Sathyanarayana, S. (2021). Phthalate mixtures in pregnancy, autistic traits, 
 and adverse childhood behavioral outcomes. Environment International, 147, 106330.
 
-* Day, D. B., Sathyanarayana, S., LeWinn, K., Bush, N., Karr, C., Mason, A., Szpiro, A. (2022). 
-A Permutation Test-Based Approach to Strengthening Inference on the Effects of Environmental 
-Mixtures: Comparison Between Single Index Analytic Methods. Environmental Health Perspectives, 
-Accepted.
+* Day, D. B., Sathyanarayana, S., LeWinn, K. Z., Karr, C. J., Mason, W. A., & Szpiro, A. 
+A. (2022). A permutation test-based approach to strengthening inference on the effects of 
+environmental mixtures: comparison between single index analytic methods. Environmental 
+Health Perspectives, 130(8). 
+
+* Freije, S. L., Enquobahrie, D. A., Day, D. B., Loftus, C., Szpiro, A. A., Karr, C. J.,
+... & Sathyanarayana, S. (2022). Prenatal exposure to polycyclic aromatic hydrocarbons and
+gestational age at birth. Environment International, 164, 107246.
 
 * Loftus, C. T., Bush, N. R., Day, D. B., Ni, Y., Tylavsky, F. A., Karr, C. J., ... & 
 LeWinn, K. Z. (2021). Exposure to prenatal phthalate mixtures and neurodevelopment 
 in the Conditions Affecting Neurocognitive Development and Learning in Early 
 childhood (CANDLE) study. Environment International, 150, 106409.
 
+* Loftus, C., Szpiro, A. A., Workman, T., Wallace, E. R., Hazlehurst, M. F., Day, D. B.,
+... & Karr, C. J. (2022). Prenatal urinary polycyclic aromatic hydrocarbon (PAH)
+exposure and childhood asthma in a longitudinal multi-cohort study. Preprint available at 
+SSRN: https://ssrn.com/abstract=4102800.
+
 * Renzetti, S., Curtin, P., Just, A. C., Bello, G., & Gennings, C. (2021). 
 ‘gWQS: Generalized Weighted Quantile Sum Regression’. https://CRAN.R-project.org/package=gWQS.
+
+* Wallace, E. R., Ni, Y., Loftus, C. T., Sullivan, A., Masterson, E., Szpiro, A., ... & 
+Sathyanarayana, S. (2022). Prenatal urinary metabolites of polycyclic aromatic hydrocarbons
+and toddler cognition, language, and behavior. Environment International, 159, 107039.
