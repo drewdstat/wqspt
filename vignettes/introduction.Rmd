@@ -258,6 +258,8 @@ sim_res1 <- wqs_sim(nmix = 10,
                     seed = 16)
 
 sim_data1 <- sim_res1$Data
+
+wqs_form <- formula(paste0("y ~ wqs + ", paste(paste0("C",1:10), collapse="+")))
 ```
 
 Now we run WQS regression on the simulated data.  
@@ -267,7 +269,7 @@ Now we run WQS regression on the simulated data.
 mix_names1 <- colnames(sim_data1)[2:11]
 
 # create reference wqs object
-wqs_main1 <- gwqs(y ~ wqs, mix_name = mix_names1, data = sim_data1, q = 10, validation = 0,
+wqs_main1 <- gwqs(wqs_form, mix_name = mix_names1, data = sim_data1, q = 10, validation = 0,
                   b = 10, b1_pos = T, plan_strategy = "multicore", family = "gaussian", 
                   seed = 16)
 ```
@@ -334,7 +336,7 @@ Now we run WQS regression as well as the permutation test on the simulated data.
 mix_names2 <- colnames(sim_data2)[2:11]
 
 # create reference wqs object
-wqs_main2 <- gwqs(y ~ wqs, mix_name = mix_names2, data = sim_data2, q = 10, validation = 0,
+wqs_main2 <- gwqs(wqs_form, mix_name = mix_names2, data = sim_data2, q = 10, validation = 0,
                   b = 10, b1_pos = T, plan_strategy = "multicore", family = "gaussian", 
                   seed = 16)
 
@@ -369,7 +371,7 @@ Using the same data as in Example 1, we run the WQS regression with permutation
 test using the full wrapper `wqs_full_perm` call.
 
 ```{r, fig.height = 6, cache = T, warning = F}
-perm_test_res <- wqs_full_perm(y ~ wqs,
+perm_test_res <- wqs_full_perm(wqs_form,
                                data = sim_data1,
                                mix_name = mix_names1,
                                q = 10,
@@ -411,7 +413,7 @@ sim_res3 <- wqs_sim(nmix = 10,
 
 sim_data3 <- sim_res3$Data
 
-perm_test_res <- wqs_full_perm(y ~ wqs,
+perm_test_res <- wqs_full_perm(wqs_form,
                                data = sim_data3,
                                mix_name = mix_names1,
                                q = 10,
