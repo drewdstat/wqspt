@@ -408,7 +408,7 @@ wqspt_plot <- function(wqsptresults, FixedPalette = FALSE, InclKey = FALSE,
                           HeatMapTextSize = 5) {
   
   wqs_fam <- wqsptresults$family
-  if(!is.null(wqs_fam$family)) wqs_fam <- wqs_fam$family
+  if(!is.character(wqs_fam)) wqs_fam <- wqs_fam$family
 
   thisfit <- wqsptresults$gwqs_main$fit
   b1pos <- wqsptresults$gwqs_main$b1_pos
