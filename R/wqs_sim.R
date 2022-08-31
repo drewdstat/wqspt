@@ -11,9 +11,9 @@
 #' @param ntruecovrt Number of covariates that have a non-zero association with 
 #' the outcome (i.e., are not noise).
 #' @param corrstruct Correlation matrix.
-#' @param eps Dispersion parameter. If the type is "gaussian", this corresponds
-#' to the residual standard deviation. If the type is "binomial",
-#' this parameter is ignored.
+#' @param eps Dispersion parameter. If the family is "gaussian", this corresponds
+#' to the residual standard deviation. If the family is "binomial", this 
+#' parameter is ignored.
 #' @param truewqsbeta Simulated WQS beta_1 value. If NULL, then this value will 
 #' be randomly sampled depending on the parameter rnd_wqsbeta_dir. 
 #' @param truebeta0 Simulated beta_0 value. If NULL, then this value will be
@@ -30,7 +30,7 @@
 #' then truewqsbeta will be sampled from a standard normal distribution. 
 #' @param seed Random seed.
 #' @param q Number of quantiles. 
-#' @param type Outcome family ("gaussian" for continuous outcomes or "binomial" 
+#' @param family Outcome family ("gaussian" for continuous outcomes or "binomial" 
 #' for binary outcomes).
 #'
 #' @return \code{wqs_perm} returns a list of:
@@ -59,7 +59,7 @@
 #' 
 #' testsim_gaussian<-
 #'   wqs_sim(truewqsbeta=0.2,truebeta0=-2,
-#'           truewts=c(rep(0.15,5),rep(0.05,5)),type="gaussian")
+#'           truewts=c(rep(0.15,5),rep(0.05,5)),family="gaussian")
 #' Dat<-testsim_gaussian$Data
 #' Dat$wqs<-testsim_gaussian$wqs
 #' summary(glm(wqsform,data=Dat,family="gaussian"))$coef[1:2,]
@@ -74,7 +74,7 @@
 #' 
 #' testsim_logit<-
 #'   wqs_sim(truewqsbeta=0.2,truebeta0=-2,
-#'           truewts=c(rep(0.15,5),rep(0.05,5)),type="binomial")
+#'           truewts=c(rep(0.15,5),rep(0.05,5)),family="binomial")
 #' Dat<-testsim_logit$Data
 #' Dat$wqs<-testsim_logit$wqs
 #' summary(glm(wqsform,data=Dat,family="binomial"))$coef[1:2,]
@@ -84,11 +84,11 @@ wqs_sim <- function(nmix = 10, ncovrt = 10, nobs = 500, ntruewts = 10,
                     ntruecovrt = 5, corrstruct = 0, eps = 1, truewqsbeta = NULL, 
                     truebeta0 = NULL, truewts = NULL, truegamma = NULL, 
                     rnd_wqsbeta_dir = "none", seed = 101, q = 10, 
-                    type = "gaussian") {
+                    family = "gaussian") {
   
-  if (!type %in% c("gaussian", "binomial")){
-    stop("This simulation function can only continuous (type = 'gaussian') or 
-         binary (type = 'binomial') outcomes.")
+  if (!family %in% c("gaussian", "binomial")){
+    stop("This simulation function can only continuous (family = 'gaussian') or 
+         binary (family = 'binomial') outcomes.")
   }
   
   if (length(corrstruct) == 1) {
@@ -189,7 +189,7 @@ wqs_sim <- function(nmix = 10, ncovrt = 10, nobs = 500, ntruewts = 10,
     names(betas) <- c("beta0", "beta1")
   }
   
-  if (type == "binomial"){
+  if (family == "binomial"){
     etahat <- modmat %*% betas
     probs <- 1 / (1 + exp(-etahat))
     set.seed(seed)
