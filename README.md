@@ -28,8 +28,14 @@ that should reliably allow for both high power and low false positive
 rate when utilizing the WQSr. The permutation test is a method of
 obtaining a p-value by simulating the null distribution through
 permutations of the data. The permutation test algorithm is described
-more in detail
-[here](https://www.sciencedirect.com/science/article/pii/S0160412021000337).
+more in detail and validated in [Day et al. 2022](https://ehp.niehs.nih.gov/doi/10.1289/EHP10570). 
+The version of this permutation test used for a continuous outcome 
+variable has been applied in [Loftus et al. 2021](https://www.sciencedirect.com/science/article/pii/S0160412021000337), 
+[Day et al. 2021](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9291724/), 
+[Wallace et al. 2022](https://www.sciencedirect.com/science/article/pii/S0160412021006644), 
+and [Freije et al. 2022](https://www.sciencedirect.com/science/article/pii/S0160412022001726).
+Another version of the permutation test adapted for logistic WQSr with a binary outcome
+variable is applied in [Loftus et al. 2022](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4102800).
 
 ## Installation
 
