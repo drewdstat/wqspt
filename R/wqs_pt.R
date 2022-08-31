@@ -196,8 +196,7 @@ wqs_pt <- function(model, niter = 200, boots = NULL, b1_pos = TRUE,
                               q = nq, b = boots, rs = rs, validation = 0, 
                               plan_strategy = plan_strategy, b1_pos = b1_pos, 
                               b1_constr = b1_constr))
-      }, error = function(e) NULL, 
-      warning = function(e) if (rs == TRUE) message("WQSRS failed") else message("WQS failed"))
+      }, error = function(e) NULL)
       
       if (is.null(gwqs1))
         lm1 <- NULL else lm1 <- gwqs1$fit
@@ -261,8 +260,7 @@ wqs_pt <- function(model, niter = 200, boots = NULL, b1_pos = TRUE,
                             plan_strategy = plan_strategy, b1_pos = b1_pos, 
                             family = model$family, seed = seed,
                             b1_constr = b1_constr))
-    }, error = function(e) NULL, 
-    warning = function(e) if (rs == TRUE) message("WQSRS failed") else message("WQS failed"))
+    }, error = function(e) NULL)
     
     fit1 <- lwqs1$fit
     fit2 <- glm(formula(paste0(yname, formchar[1], gsub("wqs + ", "", 
@@ -292,8 +290,7 @@ wqs_pt <- function(model, niter = 200, boots = NULL, b1_pos = TRUE,
                               plan_strategy = plan_strategy, 
                               b1_pos = b1_pos, family = model$family$family,
                               b1_constr = b1_constr)
-          )}, error = function(e) NULL, 
-        warning = function(e) if (rs == TRUE) message("WQSRS failed") else message("WQS failed"))
+          )}, error = function(e) NULL)
       
       if (is.null(gwqs1))
         lm1 <- NULL
