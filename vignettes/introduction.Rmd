@@ -219,8 +219,8 @@ a non-significant result, then there likely is no reason to run the permutation
 test, as it will produce a result which is more conservative than the naive 
 method (i.e., it will have a larger p-value). This is the strategy that we have 
 applied in our published papers 
-([Loftus 2021](https://www.sciencedirect.com/science/article/pii/S0160412021000337) and 
-[Day 2021](https://www.sciencedirect.com/science/article/pii/S0160412020322856)). 
+([Loftus et al. 2021](https://www.sciencedirect.com/science/article/pii/S0160412021000337) and 
+[Day et al. 2021](https://www.sciencedirect.com/science/article/pii/S0160412020322856)). 
 
 # Examples 
 
