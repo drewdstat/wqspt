@@ -33,7 +33,7 @@ The version of this permutation test used for a continuous outcome
 variable has been applied in [Loftus et al. 2021](https://www.sciencedirect.com/science/article/pii/S0160412021000337), 
 [Day et al. 2021](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9291724/), 
 [Wallace et al. 2022](https://www.sciencedirect.com/science/article/pii/S0160412021006644), 
-[Barrett et al. 2022](https://www.sciencedirect.com/science/article/pii/S0160412022000034#s0100),
+[Barrett et al. 2022](https://www.sciencedirect.com/science/article/pii/S0160412022000034),
 and [Freije et al. 2022](https://www.sciencedirect.com/science/article/pii/S0160412022001726).
 Another version of the permutation test adapted for logistic WQSr with a binary outcome
 variable is applied in [Loftus et al. 2022](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4102800).
