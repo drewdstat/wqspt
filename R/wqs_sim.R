@@ -46,6 +46,40 @@
 #' @import mvtnorm extraDistr
 #' @export wqs_sim
 #'
+#' @examples
+#'
+#' # For these examples, we only run a GLM using the simulated dataset
+#' # including the simulated WQS vector just to show that the user-specified
+#' # coefficients for beta1 and beta0 are returned. An example of running
+#' # the full permutation test WQS regression for the simulated dataset
+#' # (for which the WQS vector would be determined by the model)
+#' # with the "gaussian" family is shown as well.
+#' 
+#' wqsform<-formula(paste0("y~wqs+",paste(paste0("C",1:10),collapse="+")))
+#' 
+#' testsim_gaussian<-
+#'   wqs_sim(truewqsbeta=0.2,truebeta0=-2,
+#'           truewts=c(rep(0.15,5),rep(0.05,5)),type="gaussian")
+#' Dat<-testsim_gaussian$Data
+#' Dat$wqs<-testsim_gaussian$wqs
+#' summary(glm(wqsform,data=Dat,family="gaussian"))$coef[1:2,]
+#' perm_test_res <- wqs_full_perm(formula = wqsform, data = testsim_gaussian$Data, 
+#'                                mix_name = paste0("T",1:10), q = 10, b_main = 5, 
+#'                                b_perm = 5, b1_pos = TRUE, b1_constr = FALSE, 
+#'                                niter = 4, seed = 16, plan_strategy = "multicore", 
+#'                                stop_if_nonsig = FALSE)
+#' # Note: The default values of b_main = 1000, b_perm = 200, and niter = 200 
+#' # are the recommended parameter values. This example has a lower b_main, 
+#' # b_perm, and niter in order to serve as a shorter test run. 
+#' 
+#' testsim_logit<-
+#'   wqs_sim(truewqsbeta=0.2,truebeta0=-2,
+#'           truewts=c(rep(0.15,5),rep(0.05,5)),type="binomial")
+#' Dat<-testsim_logit$Data
+#' Dat$wqs<-testsim_logit$wqs
+#' summary(glm(wqsform,data=Dat,family="binomial"))$coef[1:2,]
+#'
+#'
 wqs_sim <- function(nmix = 10, ncovrt = 10, nobs = 500, ntruewts = 10, 
                     ntruecovrt = 5, corrstruct = 0, eps = 1, truewqsbeta = NULL, 
                     truebeta0 = NULL, truewts = NULL, truegamma = NULL, 
