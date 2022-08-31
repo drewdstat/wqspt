@@ -386,7 +386,6 @@ wqspt_plot(perm_test_res)$FullPlot
 ```
 
 
-
 ## Example 4 (using `wqs_full_perm` on binary outcome example)
 
 This is an example in which we apply the logistic regression version of the WQS 
