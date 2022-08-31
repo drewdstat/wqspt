@@ -221,6 +221,12 @@ method (i.e., it will have a larger p-value). This is the strategy that we have
 applied in our published papers 
 ([Loftus et al. 2021](https://www.sciencedirect.com/science/article/pii/S0160412021000337) and 
 [Day et al. 2021](https://www.sciencedirect.com/science/article/pii/S0160412020322856)). 
+Please also note that some of the iterated WQS regressions may not find any 
+bootstrapped "b1" coefficient values in the desired direction in their internal first
+stage (which performs the mixture weight estimation), and therefore they won't return
+any estimates. The `wqs_pt` function will output a message saying how many of these
+"failed" iterations there were. This is more of a technical detail and does not affect
+the performance of the models. This is described in more detail in [Day et al. 2022](https://ehp.niehs.nih.gov/doi/10.1289/EHP10570).
 
 # Examples 
 
