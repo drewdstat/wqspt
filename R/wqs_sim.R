@@ -11,23 +11,26 @@
 #' @param ntruecovrt Number of covariates that have a non-zero association with 
 #' the outcome (i.e., are not noise).
 #' @param corrstruct Correlation matrix.
-#' @param eps Error term.
+#' @param eps Dispersion parameter. If the type is "gaussian", this corresponds
+#' to the residual standard deviation. If the type is "binomial",
+#' this parameter is ignored.
 #' @param truewqsbeta Simulated WQS beta_1 value. If NULL, then this value will 
-#' be randomly sampled. 
+#' be randomly sampled depending on the parameter rnd_wqsbeta_dir. 
 #' @param truebeta0 Simulated beta_0 value. If NULL, then this value will be
-#' randomly sampled. 
+#' randomly sampled from a standard normal distribution. 
 #' @param truewts Simulated vector of mixture weights. If NULL, then this value 
-#' will be randomly sampled. 
+#' will be randomly sampled from a Dirichlet distribution with a vector of alpha
+#' values all equal to 1. 
 #' @param truegamma Simulated gamma vector. If NULL, then this value will be
-#' randomly sampled. 
+#' randomly sampled from a standard normal distribution. 
 #' @param rnd_wqsbeta_dir Direction of randomly sampled truewqsbeta (if 
 #' truewqsbeta = NULL). You can choose between "positive", "negative", or NULL. 
-#' If "positive" or "negative", the truewqsbeta will be sampled from a half 
-#' normal distribution in either of those respective directions. If NULL, then 
-#' truewqsbeta will be sampled from a normal distribution. 
+#' If "positive" or "negative", the truewqsbeta will be sampled from a standard
+#' half normal distribution in either of those respective directions. If NULL, 
+#' then truewqsbeta will be sampled from a standard normal distribution. 
 #' @param seed Random seed.
 #' @param q Number of quantiles. 
-#' @param type Outcome type (`gaussian` for continuous outcomes or `binomial` 
+#' @param type Outcome family ("gaussian" for continuous outcomes or "binomial" 
 #' for binary outcomes).
 #'
 #' @return \code{wqs_perm} returns a list of:
@@ -84,7 +87,7 @@ wqs_sim <- function(nmix = 10, ncovrt = 10, nobs = 500, ntruewts = 10,
   }
   
   set.seed(seed)
-  Xmat <- rmvnorm(nobs, mean = rep(0, nmix + ncovrt), sigma = Rho)
+  Xmat <- mvtnorm::rmvnorm(nobs, mean = rep(0, nmix + ncovrt), sigma = Rho)
   if (is.null(q)) {
     Xmatquant <- Xmat
   } else {
