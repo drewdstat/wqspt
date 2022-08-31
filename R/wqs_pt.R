@@ -6,14 +6,10 @@
 #' 
 #' To use `wqs_pt`, we first need to run an initial WQS regression run while 
 #' setting `validation = 0`. We will use this `gwqs` object as the model argument 
-#' for the `wqs_pt` function. Note that the permutation test is not currently 
-#' equipped to handle stratified weights or WQS interaction terms. It can also
-#' not determine p-values for multinomial (i.e., family = "multinomial") WQS 
-#' regressions or ones in which the family is gaussian() with a link that is not
-#' "identity" (i.e., it cannot accept family = gaussian(link = "log") or 
-#' family = gaussian(link = "inverse")). The accepted families are gaussian(
-#' link = "identity"), binomial() with any link, poisson(link = "log"), 
-#' "negbin", and quasipoisson(link = "log").
+#' for the `wqs_pt` function. Note that permutation test can currently only 
+#' take in `gwqs` inputs where `family = "gaussian"` or `family = "binomial"`, 
+#' and it is not currently equipped to handle stratified weights or WQS 
+#' interaction terms.
 #' 
 #' The argument `boots` is the number of bootstraps for the WQS regression run 
 #' in each permutation test iteration. Note that we may elect a bootstrap count 
@@ -45,7 +41,7 @@
 #' @param seed (optional) Random seed for the permutation test WQS reference run. 
 #' This should be the same random seed as used for the main WQS regression run. 
 #' This seed will be saved in the "gwqs_perm" object as "gwqs_perm$seed".
-#'
+#' 
 #' @return \code{wqs_pt} returns an object of class `wqs_pt`, which contains: 
 #' 
 #' \item{perm_test}{List containing: (1) `pval`: permutation test p-value, (2) (linear 
@@ -60,10 +56,10 @@
 #' test WQS regression runs as in the main run).}
 #' @import gWQS ggplot2 viridis cowplot stats methods
 #' @export wqs_pt
-#'
+#' 
 #' @examples
 #' library(gWQS)
-#'
+#' 
 #' # mixture names
 #' PCBs <- names(wqs_data)[1:17] #half of the original 34 for quick computation
 #' 
@@ -82,19 +78,21 @@
 #' 
 #' @references
 #' 
-#' Day, D., Sathyanarayana, S., LeWinn, K., Karr, C., Mason, A., Szpiro, A. (2022). 
-#' A Permutation Test-Based Approach to Strengthening Inference on the Effects of 
-#' Environmental Mixtures: Comparison Between Single Index Analytic Methods. 
-#' Environmental Health Perspectives. Accepted. 
+#' Day, D. B., Sathyanarayana, S., LeWinn, K. Z., Karr, C. J., Mason, W. A., & 
+#' Szpiro, A. A. (2022). A permutation test-based approach to strengthening 
+#' inference on the effects of environmental mixtures: comparison between single 
+#' index analytic methods. Environmental Health Perspectives, 130(8).
 #' 
-#' Day, D., Collett, B., Barrett, E., ... & Sathyanarayana, S. (2021). Phthalate 
-#' mixtures in pregnancy, autistic traits, and adverse childhood behavioral 
-#' outcomes. Environment International, 147, 106330.
-#'
-#' Loftus, C. T., Bush, N. R., Day, D., ... & LeWinn, K. Z. (2021). Exposure to 
-#' prenatal phthalate mixtures and neurodevelopment in the Conditions Affecting 
-#' Neurocognitive Development and Learning in Early childhood (CANDLE) study. 
-#' Environment International, 150, 106409.
+#' Day, D. B., Collett, B. R., Barrett, E. S., Bush, N. R., Swan, S. H., Nguyen, 
+#' R. H., ... & Sathyanarayana, S. (2021). Phthalate mixtures in pregnancy, 
+#' autistic traits, and adverse childhood behavioral outcomes. Environment 
+#' International, 147, 106330.
+#' 
+#' Loftus, C. T., Bush, N. R., Day, D. B., Ni, Y., Tylavsky, F. A., Karr, C. J., 
+#' ... & LeWinn, K. Z. (2021). Exposure to prenatal phthalate mixtures and 
+#' neurodevelopment in the Conditions Affecting Neurocognitive Development and 
+#' Learning in Early childhood (CANDLE) study. Environment International, 150, 
+#' 106409.
 #' 
 wqs_pt <- function(model, niter = 200, boots = NULL, b1_pos = TRUE, 
                      b1_constr = FALSE, rs = FALSE, plan_strategy = "multicore", 
@@ -103,14 +101,10 @@ wqs_pt <- function(model, niter = 200, boots = NULL, b1_pos = TRUE,
   pbapply::pboptions(type="timer")
   
   if (is(model, "gwqs")) {
-    if (model$family$family=="multinomial"){
-      stop("The WQS regression permutation test is not yet set up to determine
-          WQS coefficient p-values for multinomial WQS regressions.")
-    } else if (model$family$family=="gaussian"&model$family$link!="identity"){
-      stop("The WQS regression permutation test is not yet set up to determine
-          WQS coefficient p-values for gaussian() families with link functions
-          other than 'identity' (i.e., it can't accomodate 'log' or 'inverse'
-          links with a gaussian() family).")
+    if (!model$family$family %in% c("gaussian", "binomial") | 
+        !model$family$link %in% c("identity", "logit")){
+      stop("The permutation test is currently only set up to accomodate the 
+           gaussian(link = 'identity') or binomial(link = 'logit') families.")
     }
   } else stop("'model' must be of class 'gwqs' (see gWQS package).")
   
@@ -128,9 +122,6 @@ wqs_pt <- function(model, niter = 200, boots = NULL, b1_pos = TRUE,
   
   if (!is.null(model$stratified) | grepl("wqs:", formchar[3], fixed = TRUE))
   {
-    # TODO: We should be able to accomodate stratified weights though we haven't 
-    # tested that yet, and I'm not sure it makes sense to have stratified weights 
-    # without a WQS interaction term.
     stop("This permutation test is not yet set up to accomodate stratified 
          weights or WQS interaction terms.")
   }  
