@@ -11,8 +11,9 @@
 #' @param q An integer to indicate the number of quantiles to split the mixture 
 #' variables. 
 #' @param b_main The number of bootstraps for the main WQS regression run. 
-#' @param b_perm The number of bootstraps for the permutation test WQS 
-#' regression runs. 
+#' @param b_perm The number of bootstraps for the iterated permutation test 
+#' WQS regression runs and the reference WQS regression run (only for linear
+#' WQS regression and only when b_mean != b_perm). 
 #' @param b1_pos A logical value that indicates whether beta values should be 
 #' positive or negative.
 #' @param rs A logical value indicating whether random subset implementation 
@@ -31,13 +32,7 @@
 #' used in the model. This can be a character string naming a family function 
 #' (e.g., "binomial") or a family object (e.g., binomial(link="logit")). 
 #' Currently validated families include gaussian(link="identity") for linear regression 
-#' and binomial(link="logit") for logistic regressions with a binary outcome. 
-#' Other families that are accepted by the function but not validated in simulations 
-#' include family = binomial() with any other link function (e.g., "probit"), poisson() 
-#' for Poisson regression, quasipoisson() for quasi-Poisson regression, and 
-#' the character "negbin" for negative binomial regression. Multinomial WQS 
-#' regressions (i.e., family = "multinomial") are not yet supported for the 
-#' permutation test.
+#' and binomial(link="logit") for logistic regressions with a binary outcome.
 #' @param stop_if_nonsig if TRUE, the function will not proceed with the 
 #' permutation test if the main WQS regression run produces nonsignificant 
 #' p-value.
@@ -57,7 +52,7 @@
 #' \item{gwqs_main}{Main gWQS object (same as model input). This will now include an
 #' additional object "seed" that returns the seed used for this main WQS regression.}
 #' \item{gwqs_perm}{Permutation test reference gWQS object (NULL if model 
-#' `family = "binomial"` or if same number of bootstraps are used in permutation 
+#' `family != "gaussian"` or if same number of bootstraps are used in permutation 
 #' test WQS regression runs as in the main run).}
 #' @import gWQS
 #' @export wqs_full_perm
@@ -84,9 +79,10 @@ wqs_full_perm <- function(formula, data, mix_name, q = 10, b_main = 1000,
                           family = "gaussian", plan_strategy = "multicore",
                           stop_if_nonsig = FALSE, stop_thresh = 0.05, ...){
   
-  if(family=="multinomial") {
-    stop("The WQS regression permutation test is not yet set up to determine
-          WQS coefficient p-values for multinomial WQS regressions.")
+  if(is.character(family)) famchar<-family else famchar<-family$family
+  if(!famchar%in%c("gaussian","binomial")) {
+    stop("The permutation test is currently only set up to accomodate the 
+           gaussian(link = 'identity') or binomial(link = 'logit') families.")
   }
   
   # run main WQS regression
