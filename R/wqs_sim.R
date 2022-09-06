@@ -20,15 +20,18 @@
 #' be matrix(c(1, 0.4, 0.4, 1), nrow = 2, ncol = 2). The default value is 0,
 #' giving a variance-covariance matrix with variances of 1 and covariances of 0.
 #' @param eps Dispersion parameter. If the family is "gaussian", this corresponds
-#' to the residual standard deviation. If the family is "binomial", this 
-#' parameter is ignored.
+#' to the residual standard deviation. If the family is "binomial" or "poisson", 
+#' this parameter is ignored. If the family is "negbin", this represents the "size"
+#' parameter of the negative binomial distribution (see the documentation for the 
+#' rnbinom function for more details).
 #' @param truewqsbeta Simulated WQS beta_1 value. If NULL, then this value will 
 #' be randomly sampled depending on the parameter rnd_wqsbeta_dir. 
 #' @param truebeta0 Simulated beta_0 value. If NULL, then this value will be
 #' randomly sampled from a standard normal distribution. 
 #' @param truewts Simulated vector of mixture weights. If NULL, then this value 
 #' will be randomly sampled from a Dirichlet distribution with a vector of alpha
-#' values all equal to 1. 
+#' values all equal to 1 (see the documentation for the extraDistr::rdirichlet
+#' function documentation for more details). 
 #' @param truegamma Simulated gamma vector. If NULL, then this value will be
 #' randomly sampled from a standard normal distribution. 
 #' @param rnd_wqsbeta_dir Direction of randomly sampled truewqsbeta (if 
@@ -49,7 +52,7 @@
 #' \item{weights}{Simulated weights.}
 #' \item{coef}{Simulated beta coefficients.}
 #' \item{Data}{Simulated dataset.}
-#' \item{yhat}{simulated predicted y values from the data generating model.}
+#' \item{etahat}{predicted linear predictor (eta) values from the data generating model.}
 #' \item{wqs}{Weighted quantile sum vector (quantile-transformed mixture 
 #' components multiplied by weights).}
 #' \item{modmat}{Model matrix.}
@@ -264,7 +267,6 @@ wqs_sim <- function(nmix = 10, ncovrt = 10, nobs = 500, ntruewts = 10,
       weights = wtmat,
       coef = betas,
       Data = Data,
-      yhat = yhat,
       etahat = etahat,
       wqs = wqs,
       modmat = modmat,
