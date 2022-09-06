@@ -27,8 +27,8 @@ rate tradeoff, as there is a machine learning step to determine the weights that
 optimize the linear model fit. If the full data is used to estimate both the mixture 
 component weights and the regression coefficients, there is high power but also a 
 high false positive rate since coefficient p-values are calculated for a weighted 
-mixture independent variable that was calculated using weights that have already 
-been optimized to find a large effect. 
+mixture independent variable with weights that have already been optimized to find 
+a large effect. 
 
 We recently proposed alternative methods based on a permutation test that should 
 reliably allow for both high power and low false positive rate when utilizing WQS
@@ -41,7 +41,7 @@ variable has been applied in [Loftus et al. 2021](https://www.sciencedirect.com/
 [Wallace et al. 2022](https://www.sciencedirect.com/science/article/pii/S0160412021006644), 
 [Barrett et al. 2022](https://www.sciencedirect.com/science/article/pii/S0160412022000034),
 and [Freije et al. 2022](https://www.sciencedirect.com/science/article/pii/S0160412022001726).
-Another version of the permutation test adapted for logistic WQSr with a binary outcome
+Another version of the permutation test adapted for WQS logistic regression with a binary outcome
 variable is applied in [Loftus et al. 2022](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4102800).
 
 ## About WQS 
@@ -92,19 +92,19 @@ observed outcome variables, obtaining an estimate for the WQS coefficient $\beta
 6. Calculate the p-value by taking the proportion of $\beta_1^*$ values greater than 
 the WQS coefficient estimate obtained in Step 1. 
 
-### Binary or Count outcome algorithms (Generalized linear models)
+### Binary or Count outcome algorithms (Generalized linear models (GLMs))
 
 1. 	Regress each of the $m$ mixture components on all covariates $Z$ and obtain a $n$
 observations x $m$ matrix with columns being the residuals from each of the $m$ 
 models ($R_{m|Z}$).
 
-2. 	Obtain the initial fit ($fit1$) by running a “non-split” logistic WQS regression 
-in which the binary outcome variable $Y$ is regressed on the WQS vector and the 
-covariates, and the mixture matrix used to calculate the WQS vector is the 
-matrix of residuals from Step 1, $R_{m|Z}$. 
+2. 	Obtain the initial fit ($fit1$) by running a “non-split” WQS logistic regression 
+(or other WQS GLM) in which the binary (or count) outcome variable $Y$ is regressed 
+on the WQS vector and the covariates, and the mixture matrix used to calculate the 
+WQS vector is the matrix of residuals from Step 1, $R_{m|Z}$. 
 
-3. 	Obtain the reduced fit ($fit2$) by running a logistic regression regressing $Y$
-on $Z$. 
+3. 	Obtain the reduced fit ($fit2$) by running a logistic regression (or other GLM) 
+regressing $Y$ on $Z$. 
 
 4. Calculate the test p-value ($p_t$) as $1-pchisq(d(fit1)-d(fit2),1)$ where d 
 is the deviance for a given model and $pchisq(x,1)$ is the probability density 
@@ -120,6 +120,11 @@ $p^*=1-pchisq(fit1^*)-d(fit2),1$).
 Step 4 and divide that by the number of iterations K to calculate the permutation
 test p-value.
 
+Note that the above algorithm has been validated in WQS logistic regressions but
+not yet for other forms of WQS GLMs (e.g., WQS Poisson regression). However, since 
+deviances can also be derived from those models, the algorithm should work for 
+those other WQS GLMs as well.
+
 # How to use the `wqspt` package 
 
 The `wqspt` package builds from the `gWQS` package.
@@ -132,10 +137,13 @@ The two main functions of the `wqspt` package are `wqs_pt` and `wqs_full_perm`.
 
 `wqs_pt` uses a `gwqs` object (from the `gWQS` [package](https://cran.r-project.org/web/packages/gWQS/gWQS.pdf)) as an input. To use 
 `wqs_pt`, we first need to run an initial *permutation test reference WQS regression*
-run while setting `validation=0`. Note that permutation test can 
-currently only take in `gwqs` inputs where `family = "gaussian(link = "identity")"` or 
-`family = "binomial(link = "logit")"`, and it is not currently equipped to handle stratified 
-weights or WQS interaction terms. 
+run while setting `validation = 0`. Note that permutation test can 
+currently take in `gwqs` inputs with the following families: 
+`family = gaussian(link = "identity")`, `family = binomial()` with any accepted link
+function (e.g., "logit" or "probit"), `family = poisson(link = "log")`, 
+`family = quasipoisson(link = "log")`, and `family = "negbin"` for negative binomial. 
+It is not currently able to accomodate multinomial WQS regression, stratified 
+weights, or WQS interaction terms. 
 
 We will use this `gwqs` object as the `model` argument for the `wqs_pt` 
 function and set the following additional parameters: 
@@ -153,7 +161,7 @@ or negative.
 should be performed ([Curtin 2019](https://www.tandfonline.com/doi/abs/10.1080/03610918.2019.1577971?journalCode=lssp20))
 * `plan_strategy`: Evaluation strategy for the plan function ("sequential", 
 "transparent", "multisession", "multicore", "multiprocess", "cluster",
-or "remote"). See gWQS package documentation for full details.  
+or "remote"). See the documentation for the future::plan function for full details.  
 * `seed`: Random seed for the permutation test WQS reference run
 
 The arguments `b1_pos` and `rs` should be consistent with the inputs chosen in 
@@ -171,12 +179,12 @@ sublists:
   * **testbeta**: reference WQS coefficient $\beta_1$ value 
   * **betas**: a vector of $\beta_1$ values from each iteration of the permutation 
 test
-  * *Logistic WQS regression only*
+  * *WQS GLM only*
   * **testpval**: test reference p-value
-  * **permpvals**: p-values from null models 
+  * **permpvals**: p-values from each iteration of the permutation test 
 * **gwqs_main**: main gWQS object (same as `model` input)
 * **gwqs_perm**: permutation test reference gWQS object (NULL if model 
-`family = "binomial"` or if same number of bootstraps are used in permutation 
+`family != "gaussian"` or if same number of bootstraps are used in permutation 
 test WQS regression runs as in the main run.)
 
 ### Plotting method
@@ -189,11 +197,16 @@ with the naive confidence intervals as well as the permutation test p-value and
 ## `wqs_full_perm` 
 
 The second function `wqs_full_perm` is a full wrapper which implements the initial 
-gWQS regression run and permutation test in one function call. 
+WQS regression run using gWQS::gwqs and the permutation test in one function call. 
 
 To use `wqs_full_perm`, you must specify the same required arguments as needed in 
-the `gwqs` call. Note that permutation test can currently only handle 
-`family = "gaussian(link = "identity")"` or `family = "binomial(link = "logit")"`.
+the `gwqs` call. This function can run WQS regressions and the permutation test 
+for the following families: `family = gaussian(link = "identity")`, 
+`family = binomial()` with any accepted link function (e.g., "logit" or "probit"), 
+`family = poisson(link = "log")`, `family = quasipoisson(link = "log")`, 
+and `family = "negbin"` for negative binomial. `wqs_full_perm `is not currently 
+able to accomodate multinomial WQS regression, stratified weights, or WQS 
+interaction terms.
 
 For the bootstrap count `b` argument, you must specify `b_main`,the number of 
 bootstraps for the *main WQS regression* run, as well as `b_perm`, the number of 
@@ -225,8 +238,8 @@ Please also note that some of the iterated WQS regressions may not find any
 bootstrapped "b1" coefficient values in the desired direction in their internal first
 stage (which performs the mixture weight estimation), and therefore they won't return
 any estimates. The `wqs_pt` function will output a message saying how many of these
-"failed" iterations there were. This is more of a technical detail and does not affect
-the performance of the models. This is described in more detail in [Day et al. 2022](https://ehp.niehs.nih.gov/doi/10.1289/EHP10570).
+"failed" iterations there were. This is more of a technical detail and should not 
+affect the performance of the models. This is described in more detail in [Day et al. 2022](https://ehp.niehs.nih.gov/doi/10.1289/EHP10570).
 
 # Examples 
 
@@ -270,7 +283,7 @@ mix_names1 <- colnames(sim_data1)[2:11]
 
 # create reference wqs object
 wqs_main1 <- gwqs(wqs_form, mix_name = mix_names1, data = sim_data1, q = 10, validation = 0,
-                  b = 10, b1_pos = T, plan_strategy = "multicore", family = "gaussian", 
+                  b = 20, b1_pos = T, plan_strategy = "multicore", family = "gaussian", 
                   seed = 16)
 ```
 
@@ -337,7 +350,7 @@ mix_names2 <- colnames(sim_data2)[2:11]
 
 # create reference wqs object
 wqs_main2 <- gwqs(wqs_form, mix_name = mix_names2, data = sim_data2, q = 10, validation = 0,
-                  b = 10, b1_pos = T, plan_strategy = "multicore", family = "gaussian", 
+                  b = 20, b1_pos = T, plan_strategy = "multicore", family = "gaussian", 
                   seed = 16)
 
 # run permutation test
@@ -353,7 +366,7 @@ main_sum2 <- summary(perm_test_res2$gwqs_main)
 main_sum2$coefficients
 ```
 
-The permutation test, however, repudiates the signficance of these plots (p = 0.38).  
+The permutation test, however, repudiates the significance of these plots (p = `r round(perm_test_res2$perm_test$pval, 2)`).  
 
 ```{r, cache = T}
 perm_test_res2$perm_test$pval
@@ -375,7 +388,7 @@ perm_test_res <- wqs_full_perm(wqs_form,
                                data = sim_data1,
                                mix_name = mix_names1,
                                q = 10,
-                               b_main = 10,
+                               b_main = 20,
                                b_perm = 5,
                                b1_pos = T,
                                niter = 50,
@@ -417,7 +430,7 @@ perm_test_res <- wqs_full_perm(wqs_form,
                                mix_name = mix_names1,
                                q = 10,
                                b_main = 20,
-                               b_perm = 10,
+                               b_perm = 5,
                                b1_pos = T,
                                niter = 50,
                                seed = 16,
