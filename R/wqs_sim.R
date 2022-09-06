@@ -10,7 +10,15 @@
 #' with the outcome (i.e., are not noise). 
 #' @param ntruecovrt Number of covariates that have a non-zero association with 
 #' the outcome (i.e., are not noise).
-#' @param corrstruct Correlation matrix.
+#' @param vcov This parameter relates to the variance-covariance matrix of the 
+#' simulated independent variables (i.e., the m exposure mixture components and 
+#' z covariates). This is either a variance-covariance matrix of dimensions 
+#' (m + z) x (m + z) or a single value. If this is a single value, the variance-
+#' covariance matrix will have ones on the diagonal and that single value will be
+#' all the off-diagonal values. For example, if this input were 0.4 and there were
+#' two mixture components and no covariates, the variance-covariance matrix would
+#' be matrix(c(1, 0.4, 0.4, 1), nrow = 2, ncol = 2). The default value is 0,
+#' giving a variance-covariance matrix with variances of 1 and covariances of 0.
 #' @param eps Dispersion parameter. If the family is "gaussian", this corresponds
 #' to the residual standard deviation. If the family is "binomial", this 
 #' parameter is ignored.
@@ -24,14 +32,17 @@
 #' @param truegamma Simulated gamma vector. If NULL, then this value will be
 #' randomly sampled from a standard normal distribution. 
 #' @param rnd_wqsbeta_dir Direction of randomly sampled truewqsbeta (if 
-#' truewqsbeta = NULL). You can choose between "positive", "negative", or NULL. 
-#' If "positive" or "negative", the truewqsbeta will be sampled from a standard
+#' truewqsbeta = NULL). The options are "positive", "negative", or NULL. If 
+#' "positive" or "negative", the truewqsbeta will be sampled from a standard
 #' half normal distribution in either of those respective directions. If NULL, 
 #' then truewqsbeta will be sampled from a standard normal distribution. 
 #' @param seed Random seed.
 #' @param q Number of quantiles. 
-#' @param family Outcome family ("gaussian" for continuous outcomes or "binomial" 
-#' for binary outcomes).
+#' @param family Family for the generative model creating the outcome vector. 
+#' Options include "gaussian" or gaussian(link = "identity") for a continuous
+#' outcome, "binomial" or binomial() with any accepted link function for a binary
+#' outcome, and finally for count outcomes this can be "poisson", 
+#' poisson(link="log"), or "negbin" for negative binomial.
 #'
 #' @return \code{wqs_perm} returns a list of:
 #' \item{weights}{Simulated weights.}
@@ -70,7 +81,7 @@
 #'                                stop_if_nonsig = FALSE)
 #' # Note: The default values of b_main = 1000, b_perm = 200, and niter = 200 
 #' # are the recommended parameter values. This example has a lower b_main, 
-#' # b_perm, and niter in order to serve as a shorter test run. 
+#' # b_perm, and niter in order to serve as a shorter example run. 
 #' 
 #' testsim_logit<-
 #'   wqs_sim(truewqsbeta=0.2,truebeta0=-2,
@@ -81,21 +92,38 @@
 #'
 #'
 wqs_sim <- function(nmix = 10, ncovrt = 10, nobs = 500, ntruewts = 10, 
-                    ntruecovrt = 5, corrstruct = 0, eps = 1, truewqsbeta = NULL, 
+                    ntruecovrt = 5, vcov = 0, eps = 1, truewqsbeta = NULL, 
                     truebeta0 = NULL, truewts = NULL, truegamma = NULL, 
                     rnd_wqsbeta_dir = "none", seed = 101, q = 10, 
                     family = "gaussian") {
   
-  if (!family %in% c("gaussian", "binomial")){
-    stop("This simulation function can only continuous (family = 'gaussian') or 
-         binary (family = 'binomial') outcomes.")
+   if (is.character(family)) {
+    if (family=="multinomial"){
+      stop("This simulation function doesn't yet accomodate 
+           multinomial WQS regression.")
+    }
+    if (family %in% c("negbin")) 
+      family <- list(family = family)
+    else family <- get(family, mode = "function", 
+                       envir = parent.frame())
   }
-  
-  if (length(corrstruct) == 1) {
+  if (is.function(family)) 
+    family <- family()
+  if (is.null(family$family)) {
+    print(family)
+    stop("'family' not recognized\n")
+  }
+
+  if (length(vcov) == 1) {
     Rho <- diag(nmix + ncovrt)
-    Rho[upper.tri(Rho)] <- Rho[lower.tri(Rho)] <- corrstruct
+    Rho[upper.tri(Rho)] <- Rho[lower.tri(Rho)] <- vcov
   } else {
-    Rho <- corrstruct
+    if(nrow(vcov) != ncol(vcov)|nrow(vcov) != (nmix + ncovrt)){
+      stop("'vcov' must be a square matrix with the number of 
+           rows/columns being equal to the number of mixture
+           components + the number of covariates.")
+    }
+    Rho <- vcov
   }
   
   weights <- rep(0, nmix)
@@ -150,11 +178,11 @@ wqs_sim <- function(nmix = 10, ncovrt = 10, nobs = 500, ntruewts = 10,
       covrtbetas <- truegamma
     }
   } else {
-    set.seed(seed)
+    set.seed(seed + 2)
     covrtbetas <- c(rnorm(ntruecovrt), rep(0, length = ncovrt - ntruecovrt))
   }
   
-  set.seed(seed)
+  set.seed(seed + 1)
   if (!is.null(truebeta0)) {
     beta0 <- truebeta0
   } else {
@@ -189,22 +217,33 @@ wqs_sim <- function(nmix = 10, ncovrt = 10, nobs = 500, ntruewts = 10,
     names(betas) <- c("beta0", "beta1")
   }
   
-  if (family == "binomial"){
-    etahat <- modmat %*% betas
-    probs <- 1 / (1 + exp(-etahat))
+  etahat <- modmat %*% betas
+  if(family$family=="binomial"){
+    probs <- family$linkinv(etahat)
     set.seed(seed)
     y <- rbinom(nobs, size = 1, prob = probs)
-    Data <- data.frame(cbind(y, Xmat))
-    yhat <- NULL
-  }
-  else{
-    yhat <- modmat %*% betas
+  } else if(family$family=="gaussian"){
+    if(family$link!="identity") { 
+      stop("The gaussian() family is only supported for 
+           link='identity' for WQS regression")
+    }
     set.seed(seed)
     epsilon <- rnorm(nobs, sd = eps)
-    y <- yhat + epsilon
-    Data <- data.frame(cbind(y, Xmat))    
-    etahat <- NULL 
+    y <- etahat + epsilon
+  } else if(family$family=="poisson"){
+    if(family$link!="log") { 
+      stop("The poisson() family is only supported for 
+           link='log' for WQS regression")
+    }
+    y<-rpois(nobs,lambda = exp(etahat))
+  } else if(family$family=="negbin"){
+    y <- rnbinom(n = nobs, mu = exp(etahat), size = eps)
+  } else {
+    stop(paste0("The family ",family$family,
+                " (link=",family$link,") is not supported."))
   }
+  
+  Data <- data.frame(cbind(y, Xmat))
   
   if (ncovrt > 0) {
     names(Data) <- c("y", paste0("T", 1:nmix), paste0("C", 1:ncovrt))
