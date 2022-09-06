@@ -25,14 +25,16 @@
 #' The seed will be saved in the "gwqs_main" object as "gwqs_main$seed".
 #' @param plan_strategy Evaluation strategy for the plan function. You can choose 
 #' among "sequential", "transparent", "multisession", "multicore", "multiprocess", 
-#' "cluster" and "remote." See gWQS documentation for full details. 
+#' "cluster" and "remote." See future::plan documentation for full details. 
 #' @param b1_constr Logical value that determines whether to apply positive or 
 #' negative constraints in the optimization function for the weight optimization.
 #' @param family A description of the error distribution and link function to be 
 #' used in the model. This can be a character string naming a family function 
 #' (e.g., "binomial") or a family object (e.g., binomial(link="logit")). 
-#' Currently validated families include gaussian(link="identity") for linear regression 
-#' and binomial(link="logit") for logistic regressions with a binary outcome.
+#' Currently validated families include gaussian(link="identity") for linear 
+#' regression, binomial() with any accepted link function (e.g., "logit" or 
+#' "probit"), poisson(link = "log"), quasipoisson(link = "log"), or "negbin" for 
+#' negative binomial. The "multinomial" family is not yet supported.
 #' @param stop_if_nonsig if TRUE, the function will not proceed with the 
 #' permutation test if the main WQS regression run produces nonsignificant 
 #' p-value.
@@ -79,10 +81,11 @@ wqs_full_perm <- function(formula, data, mix_name, q = 10, b_main = 1000,
                           family = "gaussian", plan_strategy = "multicore",
                           stop_if_nonsig = FALSE, stop_thresh = 0.05, ...){
   
-  if(is.character(family)) famchar<-family else famchar<-family$family
-  if(!famchar%in%c("gaussian","binomial")) {
-    stop("The permutation test is currently only set up to accomodate the 
-           gaussian(link = 'identity') or binomial(link = 'logit') families.")
+  if (is.character(family)) {
+    if (family=="multinomial"){
+      stop("This simulation function doesn't yet accomodate 
+           multinomial WQS regression.")
+    }
   }
   
   # run main WQS regression
