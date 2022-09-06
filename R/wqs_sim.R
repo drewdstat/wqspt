@@ -41,8 +41,9 @@
 #' @param family Family for the generative model creating the outcome vector. 
 #' Options include "gaussian" or gaussian(link = "identity") for a continuous
 #' outcome, "binomial" or binomial() with any accepted link function for a binary
-#' outcome, and finally for count outcomes this can be "poisson", 
-#' poisson(link="log"), or "negbin" for negative binomial.
+#' outcome, and finally for count outcomes this can be "poisson" or 
+#' poisson(link="log") for the Poisson distributed outcome values, or "negbin" 
+#' for negative binomial distributed outcome values.
 #'
 #' @return \code{wqs_perm} returns a list of:
 #' \item{weights}{Simulated weights.}
