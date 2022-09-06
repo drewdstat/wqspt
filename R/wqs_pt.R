@@ -6,10 +6,17 @@
 #' 
 #' To use `wqs_pt`, we first need to run an initial WQS regression run while 
 #' setting `validation = 0`. We will use this `gwqs` object as the model argument 
-#' for the `wqs_pt` function. Note that permutation test can currently only 
-#' take in `gwqs` inputs where `family = "gaussian"` or `family = "binomial"`, 
-#' and it is not currently equipped to handle stratified weights or WQS 
-#' interaction terms.
+#' for the `wqs_pt` function. Note that permutation test has so far only been
+#' validated for linear WQS regression (i.e., `family = "gaussian"`) or logistic
+#' WQS regression (i.e., `family = binomial(link = "logit")`), though the
+#' permutation test algorithm should also work for all WQS GLMs. Therefore,
+#' this function accepts `gwqs` objects made with the following families: 
+#' "gaussian" or gaussian(link = "identity"), "binomial" or binomial() with 
+#' any accepted link function (e.g., "logit" or "probit"), "poisson" or 
+#' poisson(link="log"), "negbin" for negative binomial, and "quasipoisson" or
+#' quasipoisson(link="log"). This function cannot currently accomodate `gwqs`
+#' objects made with the "multinomial" family, and it is not currently able to 
+#' accomodate stratified weights or WQS interaction terms (e.g., `y ~ wqs * sex`).
 #' 
 #' The argument `boots` is the number of bootstraps for the WQS regression run 
 #' in each permutation test iteration. Note that we may elect a bootstrap count 
@@ -36,7 +43,7 @@
 #' should be performed. 
 #' @param plan_strategy Evaluation strategy for the plan function. You can choose 
 #' among "sequential", "transparent", "multisession", "multicore", 
-#' "multiprocess", "cluster" and "remote." See gWQS documentation for full 
+#' "multiprocess", "cluster" and "remote." See future::plan documentation for full 
 #' details. 
 #' @param seed (optional) Random seed for the permutation test WQS reference run. 
 #' This should be the same random seed as used for the main WQS regression run. 
@@ -44,15 +51,14 @@
 #' 
 #' @return \code{wqs_pt} returns an object of class `wqs_pt`, which contains: 
 #' 
-#' \item{perm_test}{List containing: (1) `pval`: permutation test p-value, (2) (linear 
-#' regression only) `testbeta1`: reference WQS coefficient 
-#' beta1 value, (3) (linear regression only) `betas`: Vector of beta values from each 
-#' permutation test run, (4) (logistic regression only) `testpval`: test reference 
-#' p-value, (5) (logistic regression only) `permpvals`: p-values from the null 
-#' models.}
+#' \item{perm_test}{List containing: (1) `pval`: permutation test p-value, 
+#' (2) (linear WQS regression only) `testbeta1`: reference WQS coefficient beta1 value, 
+#' (3) (linear WQS regression only) `betas`: Vector of beta values from 
+#' each permutation test run, (4) (WQS GLM only) `testpval`: test reference 
+#' p-value, (5) (WQS GLM only) `permpvals`: p-values from the null models.}
 #' \item{gwqs_main}{Main gWQS object (same as model input).}
 #' \item{gwqs_perm}{Permutation test reference gWQS object (NULL if model 
-#' `family = "binomial"` or if same number of bootstraps are used in permutation 
+#' `family != "gaussian"` or if same number of bootstraps are used in permutation 
 #' test WQS regression runs as in the main run).}
 #' @import gWQS ggplot2 viridis cowplot stats methods
 #' @export wqs_pt
@@ -101,10 +107,9 @@ wqs_pt <- function(model, niter = 200, boots = NULL, b1_pos = TRUE,
   pbapply::pboptions(type="timer")
   
   if (is(model, "gwqs")) {
-    if (!model$family$family %in% c("gaussian", "binomial") | 
-        !model$family$link %in% c("identity", "logit")){
-      stop("The permutation test is currently only set up to accomodate the 
-           gaussian(link = 'identity') or binomial(link = 'logit') families.")
+    if (model$family$family == "multinomial"){
+      stop("The permutation test is not currently set up to accomodate the 
+           multinomial WQS regressions.")
     }
   } else stop("'model' must be of class 'gwqs' (see gWQS package).")
   
@@ -243,8 +248,12 @@ wqs_pt <- function(model, niter = 200, boots = NULL, b1_pos = TRUE,
     Data <- model$data[, -which(names(model$data) %in% c("wqs", "wghts"))]
     
     initialfit <- function(m) {
-      newform <- formula(paste0(m, "~", gsub("wqs + ", "", formchar[3], 
-                                             fixed = TRUE)))
+      if(length(mm$coef) > 2){
+        newform <- formula(paste0(m, "~", gsub("wqs + ", "", formchar[3], 
+                                               fixed = TRUE)))
+      } else {
+        newform <- formula(paste0(m, "~1"))
+      }
       
       fit.x1 <- lm(newform, data = Data)
       return(resid(fit.x1))
@@ -263,9 +272,13 @@ wqs_pt <- function(model, niter = 200, boots = NULL, b1_pos = TRUE,
     }, error = function(e) NULL)
     
     fit1 <- lwqs1$fit
-    fit2 <- glm(formula(paste0(yname, formchar[1], gsub("wqs + ", "", 
-                                                        formchar[3], fixed = TRUE))), 
-                data = Data, family = model$family$family)
+    if(length(mm$coef) > 2){
+      fit2form <- formula(paste0(yname, "~", gsub("wqs + ", "", formchar[3], 
+                                             fixed = TRUE)))
+    } else {
+      fit2form <- formula(paste0(yname, "~1"))
+    }
+    fit2 <- glm(fit2form, data = Data, family = model$family$family)
     
     p.value.obs <- 1 - pchisq(abs(fit1$deviance - fit2$deviance), 1)
     
