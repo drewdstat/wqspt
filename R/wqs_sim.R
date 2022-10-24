@@ -78,11 +78,13 @@
 #' Dat<-testsim_gaussian$Data
 #' Dat$wqs<-testsim_gaussian$wqs
 #' summary(glm(wqsform,data=Dat,family="gaussian"))$coef[1:2,]
+#' \dontrun{
 #' perm_test_res <- wqs_full_perm(formula = wqsform, data = testsim_gaussian$Data, 
 #'                                mix_name = paste0("T",1:10), q = 10, b_main = 5, 
 #'                                b_perm = 5, b1_pos = TRUE, b1_constr = FALSE, 
 #'                                niter = 4, seed = 16, plan_strategy = "multicore", 
 #'                                stop_if_nonsig = FALSE)
+#' }
 #' # Note: The default values of b_main = 1000, b_perm = 200, and niter = 200 
 #' # are the recommended parameter values. This example has a lower b_main, 
 #' # b_perm, and niter in order to serve as a shorter example run. 
