@@ -516,15 +516,15 @@ wqspt_plot <- function(wqsptresults, FixedPalette = FALSE, InclKey = FALSE,
         "<0.1",
         ifelse(
           WQSwts$Wt >= 0.1 & WQSwts$Wt < 0.2,
-          "0.1-0.2",
+          "0.1-<0.2",
           ifelse(
             WQSwts$Wt >= 0.2 & WQSwts$Wt < 0.3,
-            "0.2-0.3",
+            "0.2-<0.3",
             paste0("\u2265", "0.3")
           )
         )
       ),
-      levels = c("<0.1", "0.1-0.2", "0.2-0.3", paste0("\u2265", "0.3"))
+      levels = c("<0.1", "0.1-<0.2", "0.2-<0.3", paste0("\u2265", "0.3"))
     )
     Virclr <- ifelse(
       WQSwts$Weight == "<0.1",
