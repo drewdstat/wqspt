@@ -89,13 +89,14 @@
 #' # are the recommended parameter values. This example has a lower b_main, 
 #' # b_perm, and niter in order to serve as a shorter example run. 
 #' 
+#' \dontrun{
 #' testsim_logit<-
 #'   wqs_sim(truewqsbeta=0.2,truebeta0=-2,
 #'           truewts=c(rep(0.15,5),rep(0.05,5)),family="binomial")
 #' Dat<-testsim_logit$Data
 #' Dat$wqs<-testsim_logit$wqs
 #' summary(glm(wqsform,data=Dat,family="binomial"))$coef[1:2,]
-#'
+#' }
 #'
 wqs_sim <- function(nmix = 10, ncovrt = 10, nobs = 500, ntruewts = 10, 
                     ntruecovrt = 5, vcov = 0, eps = 1, truewqsbeta = NULL, 
