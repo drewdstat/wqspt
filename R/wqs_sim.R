@@ -78,7 +78,7 @@
 #' Dat<-testsim_gaussian$Data
 #' Dat$wqs<-testsim_gaussian$wqs
 #' summary(glm(wqsform,data=Dat,family="gaussian"))$coef[1:2,]
-#' \dontrun{
+#' \donttest{
 #' perm_test_res <- wqs_full_perm(formula = wqsform, data = testsim_gaussian$Data, 
 #'                                mix_name = paste0("T",1:10), q = 10, b_main = 5, 
 #'                                b_perm = 5, b1_pos = TRUE, b1_constr = FALSE, 
@@ -88,8 +88,8 @@
 #' # Note: The default values of b_main = 1000, b_perm = 200, and niter = 200 
 #' # are the recommended parameter values. This example has a lower b_main, 
 #' # b_perm, and niter in order to serve as a shorter example run. 
-#' 
-#' \dontrun{
+#'
+#' \donttest{ 
 #' testsim_logit<-
 #'   wqs_sim(truewqsbeta=0.2,truebeta0=-2,
 #'           truewts=c(rep(0.15,5),rep(0.05,5)),family="binomial")
@@ -117,8 +117,7 @@ wqs_sim <- function(nmix = 10, ncovrt = 10, nobs = 500, ntruewts = 10,
   if (is.function(family)) 
     family <- family()
   if (is.null(family$family)) {
-    print(family)
-    stop("'family' not recognized\n")
+    stop(paste0("'family' ",family," not recognized\n"))
   }
 
   if (length(vcov) == 1) {
@@ -152,7 +151,7 @@ wqs_sim <- function(nmix = 10, ncovrt = 10, nobs = 500, ntruewts = 10,
   }
   
   if (round(sum(weights), 3) != 1.0) {
-    warning(print(paste0("weights add up to ", sum(weights))))
+    warning(paste0("weights add up to ", sum(weights)))
   }
   
   set.seed(seed)

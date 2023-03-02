@@ -77,9 +77,9 @@
 #' # has a lower number of bootstraps to serve as a shorter test run.
 #' 
 #' # run permutation test
-#' \dontrun{
+#' 
 #' perm_test_res <- wqs_pt(wqs_main, niter = 4, b1_pos = TRUE)
-#' }
+#' 
 #' 
 #' # Note: The default value of niter = 200 is the recommended parameter values. 
 #' # This example has a lower niter in order to serve as a shorter test run. 
@@ -218,7 +218,7 @@ wqs_pt <- function(model, niter = 200, boots = NULL, b1_pos = TRUE,
     betas <- pbapply::pbapply(reorgmat, 2, getbetas)
     
     if (any(is.na(betas))) {
-      print(paste0(length(which(is.na(betas))), " failed model attempts"))
+      message(paste0(length(which(is.na(betas))), " failed model attempts"))
     }
     
     calculate_pval <- function(x, true, posb1 = b1_pos) {
@@ -323,7 +323,7 @@ wqs_pt <- function(model, niter = 200, boots = NULL, b1_pos = TRUE,
     
     permstats <- pbapply::pbsapply(reorgmatlist, getperms)
     if (any(is.na(permstats))) {
-      print(paste0(length(which(is.na(permstats))), " failed model attempts"))
+      message(paste0(length(which(is.na(permstats))), " failed model attempts"))
     }
     
     p0 <- length(permstats[which(permstats <= p.value.obs)]) / niter
@@ -363,13 +363,13 @@ print.wqs_pt <- function(x, ...){
 #' @rawNamespace S3method(summary, wqs_pt)
 summary.wqs_pt <- function(object, ...){
   
-  cat("Permutation test WQS coefficient p-value: \n", 
+  message("Permutation test WQS coefficient p-value: \n", 
       object$perm_test$pval,
       "\n")
   
   main_sum <- summary(object$gwqs_main)
   
-  print(main_sum)
+  main_sum
   
 }
 
