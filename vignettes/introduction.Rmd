@@ -42,7 +42,7 @@ variable has been applied in [Loftus et al. 2021](https://www.sciencedirect.com/
 [Barrett et al. 2022](https://www.sciencedirect.com/science/article/pii/S0160412022000034),
 and [Freije et al. 2022](https://www.sciencedirect.com/science/article/pii/S0160412022001726).
 Another version of the permutation test adapted for WQS logistic regression with a binary outcome
-variable is applied in [Loftus et al. 2022](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4102800).
+variable is applied in [Loftus et al. 2022](https://www.sciencedirect.com/science/article/pii/S0160412022004214).
 
 ## About WQS 
 
@@ -135,7 +135,7 @@ The two main functions of the `wqspt` package are `wqs_pt` and `wqs_full_perm`.
 
 ### Arguments 
 
-`wqs_pt` uses a `gwqs` object (from the `gWQS` [package](https://cran.r-project.org/web/packages/gWQS/gWQS.pdf)) as an input. To use 
+`wqs_pt` uses a `gwqs` object (from the `gWQS` [package](https://CRAN.R-project.org/package=gWQS)) as an input. To use 
 `wqs_pt`, we first need to run an initial *permutation test reference WQS regression*
 run while setting `validation = 0`. Note that permutation test can 
 currently take in `gwqs` inputs with the following families: 
@@ -170,7 +170,7 @@ in the `model` object, though this is not required.
 
 ### Outputs 
 
-The permutation test returns an object of class `wqs_perm`, which contains three 
+The permutation test returns an object of class `wqs_pt`, which contains three 
 sublists: 
 
 * **perm_test**
@@ -226,6 +226,14 @@ above.
 
 ## Recommendations for Use 
 
+Larger bootstrap counts and numbers of iterations lead to better estimates, though
+it is unclear how many iterations or bootstraps are needed for a stable estimate. We 
+generally recommend using 1000 bootstraps on the main WQS regression and then 
+performing 200 iterations of 200-boostrap WQS regressions for the permutation test.
+However, this takes a substantial amount of computational time, and one could also
+get relatively stable p-values for instance for 100 iterations of 100-boostrap WQS
+regressions for the permutation test.
+
 We recommend that users only apply the permutation test in cases where the naive 
 WQS test approaches significance or near-significance. If the naive test produces 
 a non-significant result, then there likely is no reason to run the permutation 
@@ -248,15 +256,19 @@ affect the performance of the models. This is described in more detail in [Day e
 This is an example where the WQS permutation test confirms a significant naive 
 result.
 
-We first produce a simulated dataset with the following parameters: 
+We first load both the wqspt and gWQS packages.
+
+```{r, warning=F, message=F}
+library(gWQS)
+library(wqspt)
+```
+
+Then we produce a simulated dataset with the following parameters: 
 
 * WQS coefficient $\beta_1$: 0.2 
 * Mixture weights: 0.15 for first 5 components, 0.05 for remaining 5 components 
 
-```{r, warning = F, message = F, cache = T}
-library(gWQS)
-library(wqspt)
-
+```{r, warning = F, message = F, eval=F}
 # simulated dataset
 sim_res1 <- wqs_sim(nmix = 10,
                     ncovrt = 10,
@@ -277,7 +289,7 @@ wqs_form <- formula(paste0("y ~ wqs + ", paste(paste0("C",1:10), collapse="+")))
 
 Now we run WQS regression on the simulated data.  
 
-```{r, warning = F, cache = T}
+```{r, warning = F, eval=F}
 # mixture names
 mix_names1 <- colnames(sim_data1)[2:11]
 
@@ -289,7 +301,7 @@ wqs_main1 <- gwqs(wqs_form, mix_name = mix_names1, data = sim_data1, q = 10, val
 
 Finally, we can perform a permutation test on the WQS object. 
 
-```{r, cache = T}
+```{r, eval=F}
 # run permutation test
 perm_test_res1 <- wqs_pt(wqs_main1, niter = 50, boots = 5, b1_pos = T, seed = 16)
 ```
@@ -297,21 +309,26 @@ perm_test_res1 <- wqs_pt(wqs_main1, niter = 50, boots = 5, b1_pos = T, seed = 16
 Note that the naive WQS regression produces a significant result for the 
 WQS coefficient (p-value < 0.001).
 
-```{r, cache = T}
-main_sum1 <- summary(perm_test_res1$gwqs_main)
+```{r, echo=F}
+load("data/introduction-vignette.RData")
+```
 
+```{r, eval = F}
+main_sum1 <- summary(perm_test_res1$gwqs_main)
+```
+```{r}
 main_sum1$coefficients
 ```
 
 The permutation test confirms the significance of this result. 
 
-```{r, cache = T}
+```{r}
 perm_test_res1$perm_test$pval
 ```
 
 Here are the summary plots: 
 
-```{r, fig.height = 6, cache = T}
+```{r, fig.height = 6}
 wqspt_plot(perm_test_res1)$FullPlot
 ```
 
@@ -326,7 +343,7 @@ We produce a simulated dataset with the following parameters:
 * WQS coefficient $\beta_1$: 0
 * Mixture weights: 0.15 for first 5 components, 0.05 for remaining 5 components 
 
-```{r, warning = F, message = F, cache = T}
+```{r, eval = F}
 sim_res2 <- wqs_sim(nmix = 10,
                     ncovrt = 10,
                     nobs = 1000,
@@ -344,7 +361,7 @@ sim_data2 <- sim_res2$Data
 
 Now we run WQS regression as well as the permutation test on the simulated data.  
 
-```{r, cache = T}
+```{r, eval=F}
 # mixture names
 mix_names2 <- colnames(sim_data2)[2:11]
 
@@ -358,23 +375,24 @@ perm_test_res2 <- wqs_pt(wqs_main2, niter = 50, boots = 5, b1_pos = T, seed = 16
 ```
 
 Note that the naive WQS regression produces a significant result for the 
-WQS coefficient (p-value = 0.033).
+WQS coefficient (p-value = `r round(main_sum2$coefficients[2,4],3)`).
 
-```{r, cache = T}
+```{r, eval = F}
 main_sum2 <- summary(perm_test_res2$gwqs_main)
-
+```
+```{r}
 main_sum2$coefficients
 ```
 
 The permutation test, however, repudiates the significance of these plots (p = `r round(perm_test_res2$perm_test$pval, 2)`).  
 
-```{r, cache = T}
+```{r}
 perm_test_res2$perm_test$pval
 ```
 
 Here are the summary plots: 
 
-```{r, fig.height = 6, cache = T}
+```{r, fig.height = 6}
 wqspt_plot(perm_test_res2)$FullPlot
 ```
 
@@ -383,8 +401,8 @@ wqspt_plot(perm_test_res2)$FullPlot
 Using the same data as in Example 1, we run the WQS regression with permutation
 test using the full wrapper `wqs_full_perm` call.
 
-```{r, fig.height = 6, cache = T, warning = F}
-perm_test_res <- wqs_full_perm(wqs_form,
+```{r, eval = F}
+perm_test_res3 <- wqs_full_perm(wqs_form,
                                data = sim_data1,
                                mix_name = mix_names1,
                                q = 10,
@@ -394,8 +412,9 @@ perm_test_res <- wqs_full_perm(wqs_form,
                                niter = 50,
                                seed = 16,
                                plan_strategy = "multicore")
-
-wqspt_plot(perm_test_res)$FullPlot
+```
+```{r, fig.height = 6}
+wqspt_plot(perm_test_res3)$FullPlot
 ```
 
 
@@ -409,7 +428,7 @@ We produce a simulated dataset with the following parameters:
 * WQS coefficient $\beta_1$: 0.4
 * Mixture weights: 0.15 for first 5 components, 0.05 for remaining 5 components 
 
-```{r, fig.height = 6, cache = T}
+```{r, eval=F}
 sim_res3 <- wqs_sim(nmix = 10,
                     ncovrt = 10,
                     nobs = 1000,
@@ -425,7 +444,7 @@ sim_res3 <- wqs_sim(nmix = 10,
 
 sim_data3 <- sim_res3$Data
 
-perm_test_res <- wqs_full_perm(wqs_form,
+perm_test_res4 <- wqs_full_perm(wqs_form,
                                data = sim_data3,
                                mix_name = mix_names1,
                                q = 10,
@@ -436,8 +455,9 @@ perm_test_res <- wqs_full_perm(wqs_form,
                                seed = 16,
                                plan_strategy = "multicore",
                                family = "binomial")
-
-wqspt_plot(perm_test_res)$FullPlot
+```
+```{r, fig.height=6}
+wqspt_plot(perm_test_res4)$FullPlot
 ```
 
 # References
@@ -474,9 +494,9 @@ in the Conditions Affecting Neurocognitive Development and Learning in Early
 childhood (CANDLE) study. Environment International, 150, 106409.
 
 * Loftus, C., Szpiro, A. A., Workman, T., Wallace, E. R., Hazlehurst, M. F., Day, D. B.,
-... & Karr, C. J. (2022). Prenatal urinary polycyclic aromatic hydrocarbon (PAH)
-exposure and childhood asthma in a longitudinal multi-cohort study. Preprint available at 
-SSRN: https://ssrn.com/abstract=4102800.
+... & Karr, C. J. (2022). Maternal exposure to urinary polycyclic aromatic hydrocarbons 
+(PAH) in pregnancy and childhood asthma in a pooled multi-cohort study. Environment 
+International, 170, p.107494.
 
 * Renzetti, S., Curtin, P., Just, A. C., Bello, G., & Gennings, C. (2021). 
 ‘gWQS: Generalized Weighted Quantile Sum Regression’. https://CRAN.R-project.org/package=gWQS.
