@@ -4,7 +4,7 @@ author: "Drew Day, James Peng"
 date: "5/26/2022"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{introduction}
+  %\VignetteIndexEntry{How to use the wqspt package}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
