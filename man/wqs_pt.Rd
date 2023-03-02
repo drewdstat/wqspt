@@ -101,7 +101,9 @@ wqs_main <- gwqs(yLBX ~ wqs, mix_name = PCBs, data = wqs_data, q = 10,
 # has a lower number of bootstraps to serve as a shorter test run.
 
 # run permutation test
+
 perm_test_res <- wqs_pt(wqs_main, niter = 4, b1_pos = TRUE)
+
 
 # Note: The default value of niter = 200 is the recommended parameter values. 
 # This example has a lower niter in order to serve as a shorter test run. 
