@@ -142,7 +142,7 @@ currently take in `gwqs` inputs with the following families:
 `family = gaussian(link = "identity")`, `family = binomial()` with any accepted link
 function (e.g., "logit" or "probit"), `family = poisson(link = "log")`, 
 `family = quasipoisson(link = "log")`, and `family = "negbin"` for negative binomial. 
-It is not currently able to accomodate multinomial WQS regression, stratified 
+It is not currently able to accommodate multinomial WQS regression, stratified 
 weights, or WQS interaction terms. 
 
 We will use this `gwqs` object as the `model` argument for the `wqs_pt` 
@@ -205,13 +205,13 @@ for the following families: `family = gaussian(link = "identity")`,
 `family = binomial()` with any accepted link function (e.g., "logit" or "probit"), 
 `family = poisson(link = "log")`, `family = quasipoisson(link = "log")`, 
 and `family = "negbin"` for negative binomial. `wqs_full_perm `is not currently 
-able to accomodate multinomial WQS regression, stratified weights, or WQS 
+able to accommodate multinomial WQS regression, stratified weights, or WQS 
 interaction terms.
 
 For the bootstrap count `b` argument, you must specify `b_main`,the number of 
 bootstraps for the *main WQS regression* run, as well as `b_perm`, the number of 
 bootstraps for the *permutation test reference WQS regression* run (linear WQS
-regression only) and each WQS regresison iteration of the permutation test. As 
+regression only) and each WQS regression iteration of the permutation test. As 
 with before, you can choose to set `b_main` $>$ `b_perm` for the sake of efficiency. 
 Finally, you should indicate the number of desired permutation test runs `niter`.
 
@@ -242,12 +242,6 @@ method (i.e., it will have a larger p-value). This is the strategy that we have
 applied in our published papers 
 ([Loftus et al. 2021](https://www.sciencedirect.com/science/article/pii/S0160412021000337) and 
 [Day et al. 2021](https://www.sciencedirect.com/science/article/pii/S0160412020322856)). 
-Please also note that some of the iterated WQS regressions may not find any 
-bootstrapped "b1" coefficient values in the desired direction in their internal first
-stage (which performs the mixture weight estimation), and therefore they won't return
-any estimates. The `wqs_pt` function will output a message saying how many of these
-"failed" iterations there were. This is more of a technical detail and should not 
-affect the performance of the models. This is described in more detail in [Day et al. 2022](https://ehp.niehs.nih.gov/doi/10.1289/EHP10570).
 
 # Examples 
 
@@ -416,7 +410,6 @@ perm_test_res3 <- wqs_full_perm(wqs_form,
 ```{r, fig.height = 6}
 wqspt_plot(perm_test_res3)$FullPlot
 ```
-
 
 ## Example 4 (using `wqs_full_perm` on binary outcome example)
 
