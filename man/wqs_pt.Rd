@@ -72,9 +72,9 @@ this function accepts \code{gwqs} objects made with the following families:
 "gaussian" or gaussian(link = "identity"), "binomial" or binomial() with
 any accepted link function (e.g., "logit" or "probit"), "poisson" or
 poisson(link="log"), "negbin" for negative binomial, and "quasipoisson" or
-quasipoisson(link="log"). This function cannot currently accomodate \code{gwqs}
+quasipoisson(link="log"). This function cannot currently accommodate \code{gwqs}
 objects made with the "multinomial" family, and it is not currently able to
-accomodate stratified weights or WQS interaction terms (e.g., \code{y ~ wqs * sex}).
+accommodate stratified weights or WQS interaction terms (e.g., \code{y ~ wqs * sex}).
 
 The argument \code{boots} is the number of bootstraps for the WQS regression run
 in each permutation test iteration. Note that we may elect a bootstrap count
@@ -102,10 +102,10 @@ wqs_main <- gwqs(yLBX ~ wqs, mix_name = PCBs, data = wqs_data, q = 10,
 
 # run permutation test
 
-perm_test_res <- wqs_pt(wqs_main, niter = 4, b1_pos = TRUE)
+perm_test_res <- wqs_pt(wqs_main, niter = 3, b1_pos = TRUE)
 
 
-# Note: The default value of niter = 200 is the recommended parameter values. 
+# Note: The default value of niter = 200 is the recommended parameter value. 
 # This example has a lower niter in order to serve as a shorter test run. 
 
 }

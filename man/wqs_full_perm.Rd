@@ -104,16 +104,14 @@ library(gWQS)
 # mixture names
 PCBs <- names(wqs_data)[1:17] #half of the original 34 for quick computation
 
-\donttest{
- perm_test_res <- wqs_full_perm(formula = yLBX ~ wqs, data = wqs_data, 
+perm_test_res <- wqs_full_perm(formula = yLBX ~ wqs, data = wqs_data, 
                                 mix_name = PCBs, q = 10, b_main = 5, 
                                 b_perm = 5, b1_pos = TRUE, b1_constr = FALSE, 
-                                niter = 4, seed = 16, plan_strategy = "multicore", 
+                                niter = 3, seed = 16, plan_strategy = "multicore", 
                                 stop_if_nonsig = FALSE)
- }
 
- # Note: The default values of b_main = 1000, b_perm = 200, and niter = 200 
- # are the recommended parameter values. This example has a lower b_main, 
- # b_perm, and niter in order to serve as a shorter test run. 
+# Note: The default values of b_main = 1000, b_perm = 200, and niter = 200 
+# are the recommended parameter values. This example has a lower b_main, 
+# b_perm, and niter in order to serve as a shorter test run. 
  
 }
