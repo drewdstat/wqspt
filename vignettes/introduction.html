@@ -478,7 +478,7 @@ take in <code>gwqs</code> inputs with the following families:
 “logit” or “probit”), <code>family = poisson(link = &quot;log&quot;)</code>,
 <code>family = quasipoisson(link = &quot;log&quot;)</code>, and
 <code>family = &quot;negbin&quot;</code> for negative binomial. It is not
-currently able to accomodate multinomial WQS regression, stratified
+currently able to accommodate multinomial WQS regression, stratified
 weights, or WQS interaction terms.</p>
 <p>We will use this <code>gwqs</code> object as the <code>model</code>
 argument for the <code>wqs_pt</code> function and set the following
@@ -560,14 +560,14 @@ WQS regressions and the permutation test for the following families:
 “logit” or “probit”), <code>family = poisson(link = &quot;log&quot;)</code>,
 <code>family = quasipoisson(link = &quot;log&quot;)</code>, and
 <code>family = &quot;negbin&quot;</code> for negative binomial.
-<code>wqs_full_perm</code>is not currently able to accomodate
+<code>wqs_full_perm</code>is not currently able to accommodate
 multinomial WQS regression, stratified weights, or WQS interaction
 terms.</p>
 <p>For the bootstrap count <code>b</code> argument, you must specify
 <code>b_main</code>,the number of bootstraps for the <em>main WQS
 regression</em> run, as well as <code>b_perm</code>, the number of
 bootstraps for the <em>permutation test reference WQS regression</em>
-run (linear WQS regression only) and each WQS regresison iteration of
+run (linear WQS regression only) and each WQS regression iteration of
 the permutation test. As with before, you can choose to set
 <code>b_main</code> <span class="math inline">\(&gt;\)</span>
 <code>b_perm</code> for the sake of efficiency. Finally, you should
@@ -600,15 +600,7 @@ which is more conservative than the naive method (i.e., it will have a
 larger p-value). This is the strategy that we have applied in our
 published papers (<a href="https://www.sciencedirect.com/science/article/pii/S0160412021000337">Loftus
 et al. 2021</a> and <a href="https://www.sciencedirect.com/science/article/pii/S0160412020322856">Day
-et al. 2021</a>). Please also note that some of the iterated WQS
-regressions may not find any bootstrapped “b1” coefficient values in the
-desired direction in their internal first stage (which performs the
-mixture weight estimation), and therefore they won’t return any
-estimates. The <code>wqs_pt</code> function will output a message saying
-how many of these “failed” iterations there were. This is more of a
-technical detail and should not affect the performance of the models.
-This is described in more detail in <a href="https://ehp.niehs.nih.gov/doi/10.1289/EHP10570">Day et
-al. 2022</a>.</p>
+et al. 2021</a>).</p>
 </div>
 </div>
 <div id="examples" class="section level1">
