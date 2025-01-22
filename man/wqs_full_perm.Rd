@@ -12,7 +12,7 @@ wqs_full_perm(
   b_main = 1000,
   b_perm = 200,
   b1_pos = TRUE,
-  b1_constr = FALSE,
+  b_constr = FALSE,
   rs = FALSE,
   niter = 200,
   seed = NULL,
@@ -27,7 +27,8 @@ wqs_full_perm(
 \item{formula}{An object of class formula. The wqs term must be included in
 the formula (e.g., y ~ wqs + ...).}
 
-\item{data}{The \code{data.frame} to be used in the WQS regression run.}
+\item{data}{The \code{data.frame} to be used in the WQS regression run. This
+can be of class \code{data.frame} or it can be a tibble from the tidyverse.}
 
 \item{mix_name}{A vector with the mixture column names.}
 
@@ -43,8 +44,14 @@ WQS regression and only when b_mean != b_perm).}
 \item{b1_pos}{A logical value that indicates whether beta values should be
 positive or negative.}
 
-\item{b1_constr}{Logical value that determines whether to apply positive or
-negative constraints in the optimization function for the weight optimization.}
+\item{b_constr}{Logical value that determines whether to apply positive or
+negative constraints in the optimization function for the weight optimization.
+Note that this won't guarantee that the iterated b1 values in the
+weight optimization are only positive (if \code{b1_pos = TRUE}) or only
+negative (if \code{b1_pos = FALSE}) as seen in the \code{bres} matrix output
+by the \code{gwqs} models (i.e., column \code{bres$b1}), but it does
+substantially increase the probability that those b1 values will be
+constrained to be either positive or negative. This defaults to \code{FALSE}.}
 
 \item{rs}{A logical value indicating whether random subset implementation
 should be performed.}
@@ -58,11 +65,13 @@ The seed will be saved in the "gwqs_main" object as "gwqs_main$seed".}
 
 \item{family}{A description of the error distribution and link function to be
 used in the model. This can be a character string naming a family function
-(e.g., "binomial") or a family object (e.g., binomial(link="logit")).
-Currently validated families include gaussian(link="identity") for linear
-regression, binomial() with any accepted link function (e.g., "logit" or
-"probit"), poisson(link = "log"), quasipoisson(link = "log"), or "negbin" for
-negative binomial. The "multinomial" family is not yet supported.}
+(e.g., \code{"binomial"}) or a family object (e.g.,
+\code{binomial(link="logit")}). Currently validated families include
+\code{gaussian(link="identity")} for linear regression, \code{binomial()}
+with any accepted link function (e.g., \code{"logit"} or \code{"probit"}),
+\code{poisson(link = "log")}, \code{quasipoisson(link = "log")}, or
+\code{"negbin"} for negative binomial. The \code{"multinomial"} family is
+not yet supported.}
 
 \item{plan_strategy}{Evaluation strategy for the plan function. You can choose
 among "sequential", "transparent", "multisession", "multicore", "multiprocess",
@@ -106,7 +115,7 @@ PCBs <- names(wqs_data)[1:17] #half of the original 34 for quick computation
 
 perm_test_res <- wqs_full_perm(formula = yLBX ~ wqs, data = wqs_data, 
                                 mix_name = PCBs, q = 10, b_main = 5, 
-                                b_perm = 5, b1_pos = TRUE, b1_constr = FALSE, 
+                                b_perm = 5, b1_pos = TRUE, b_constr = FALSE, 
                                 niter = 3, seed = 16, plan_strategy = "multicore", 
                                 stop_if_nonsig = FALSE)
 

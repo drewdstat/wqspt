@@ -11,7 +11,7 @@ Description: Implements a permutation test method for the weighted quantile sum 
 License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.2
+RoxygenNote: 7.3.2
 Imports: 
     rlang, gWQS, pbapply, ggplot2, mvtnorm, viridis, extraDistr, cowplot, methods
 Suggests: 

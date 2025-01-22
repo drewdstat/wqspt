@@ -6,7 +6,8 @@
 #' 
 #' @param formula An object of class formula. The wqs term must be included in 
 #' the formula (e.g., y ~ wqs + ...).
-#' @param data The \code{data.frame} to be used in the WQS regression run. 
+#' @param data The \code{data.frame} to be used in the WQS regression run. This
+#' can be of class \code{data.frame} or it can be a tibble from the tidyverse.
 #' @param mix_name A vector with the mixture column names. 
 #' @param q An integer to indicate the number of quantiles to split the mixture 
 #' variables. 
