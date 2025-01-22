@@ -26,15 +26,23 @@
 #' @param plan_strategy Evaluation strategy for the plan function. You can choose 
 #' among "sequential", "transparent", "multisession", "multicore", "multiprocess", 
 #' "cluster" and "remote." See future::plan documentation for full details. 
-#' @param b1_constr Logical value that determines whether to apply positive or 
+#' @param b_constr Logical value that determines whether to apply positive or 
 #' negative constraints in the optimization function for the weight optimization.
+#' Note that this won't guarantee that the iterated b1 values in the 
+#' weight optimization are only positive (if \code{b1_pos = TRUE}) or only 
+#' negative (if \code{b1_pos = FALSE}) as seen in the \code{bres} matrix output 
+#' by the \code{gwqs} models (i.e., column \code{bres$b1}), but it does 
+#' substantially increase the probability that those b1 values will be 
+#' constrained to be either positive or negative. This defaults to \code{FALSE}.
 #' @param family A description of the error distribution and link function to be 
 #' used in the model. This can be a character string naming a family function 
-#' (e.g., "binomial") or a family object (e.g., binomial(link="logit")). 
-#' Currently validated families include gaussian(link="identity") for linear 
-#' regression, binomial() with any accepted link function (e.g., "logit" or 
-#' "probit"), poisson(link = "log"), quasipoisson(link = "log"), or "negbin" for 
-#' negative binomial. The "multinomial" family is not yet supported.
+#' (e.g., \code{"binomial"}) or a family object (e.g., 
+#' \code{binomial(link="logit")}). Currently validated families include 
+#' \code{gaussian(link="identity")} for linear regression, \code{binomial()} 
+#' with any accepted link function (e.g., \code{"logit"} or \code{"probit"}), 
+#' \code{poisson(link = "log")}, \code{quasipoisson(link = "log")}, or 
+#' \code{"negbin"} for negative binomial. The \code{"multinomial"} family is 
+#' not yet supported.
 #' @param stop_if_nonsig if TRUE, the function will not proceed with the 
 #' permutation test if the main WQS regression run produces nonsignificant 
 #' p-value.
@@ -67,7 +75,7 @@
 #' 
 #' perm_test_res <- wqs_full_perm(formula = yLBX ~ wqs, data = wqs_data, 
 #'                                 mix_name = PCBs, q = 10, b_main = 5, 
-#'                                 b_perm = 5, b1_pos = TRUE, b1_constr = FALSE, 
+#'                                 b_perm = 5, b1_pos = TRUE, b_constr = FALSE, 
 #'                                 niter = 3, seed = 16, plan_strategy = "multicore", 
 #'                                 stop_if_nonsig = FALSE)
 #' 
@@ -76,7 +84,7 @@
 #' # b_perm, and niter in order to serve as a shorter test run. 
 #'  
 wqs_full_perm <- function(formula, data, mix_name, q = 10, b_main = 1000, 
-                          b_perm = 200, b1_pos = TRUE, b1_constr = FALSE, 
+                          b_perm = 200, b1_pos = TRUE, b_constr = FALSE, 
                           rs = FALSE, niter = 200, seed = NULL, 
                           family = "gaussian", plan_strategy = "multicore",
                           stop_if_nonsig = FALSE, stop_thresh = 0.05, ...){
@@ -91,7 +99,7 @@ wqs_full_perm <- function(formula, data, mix_name, q = 10, b_main = 1000,
   # run main WQS regression
   gwqs_res_main <- gWQS::gwqs(formula = formula, data = data, mix_name = mix_name, 
                               q = q, b = b_main, b1_pos = b1_pos, 
-                              b1_constr = b1_constr, rs = rs, seed = seed, 
+                              b_constr = b_constr, rs = rs, seed = seed, 
                               validation = 0, family = family, 
                               plan_strategy = plan_strategy, ...) 
   
@@ -110,7 +118,7 @@ wqs_full_perm <- function(formula, data, mix_name, q = 10, b_main = 1000,
   } else {
     # run permutation test (using wqs_perm function) 
     results <- wqs_pt(gwqs_res_main, niter = niter, boots = b_perm, 
-                        b1_pos = b1_pos, b1_constr = b1_constr, rs = rs, 
+                        b1_pos = b1_pos, b_constr = b_constr, rs = rs, 
                         plan_strategy = plan_strategy, seed = seed)
   }
   
