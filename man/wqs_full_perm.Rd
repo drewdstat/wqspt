@@ -87,20 +87,21 @@ with the permutation test, if \code{stop_if_nonsig = TRUE}.}
 \item{...}{Other parameters to put into the gwqs function call.}
 }
 \value{
-\code{wqs_full_perm} returns an object of class \code{wqs_perm}, which
-contains three sublists:
+\code{wqs_full_perm} returns an object of class \code{wqs_perm},
+which contains three sublists:
 
-\item{perm_test}{List containing: (1) \code{pval}: permutation test p-value, (2) (linear
-regression only) \code{testbeta1}: reference WQS regression coefficient beta1 value, (3)
-(linear regression only) \code{betas}: Vector of beta values from each
-permutation test run, (4) (logistic regression only) \code{testpval}: test reference
-p-value, (5) (logistic regression only) \code{permpvals}: p-values from the null
-models.}
-\item{gwqs_main}{Main gWQS object (same as model input). This will now include an
-additional object "seed" that returns the seed used for this main WQS regression.}
+\item{perm_test}{List containing: (1) \code{pval}: permutation test p-value,
+(2) (linear regression only) \code{testbeta1}: reference WQS regression
+coefficient beta1 value, (3) (linear regression only) \code{betas}: Vector
+of beta values from each permutation test run, (4) (logistic regression only)
+\code{testpval}: test reference p-value, (5) (logistic regression only)
+\code{permpvals}: p-values from the null models.}
+\item{gwqs_main}{Main gWQS object (same as model input). This will now
+include an additional object "seed" that returns the seed used for this main
+WQS regression.}
 \item{gwqs_perm}{Permutation test reference gWQS object (NULL if model
-\code{family != "gaussian"} or if same number of bootstraps are used in permutation
-test WQS regression runs as in the main run).}
+\code{family != "gaussian"} or if same number of bootstraps are used in
+permutation test WQS regression runs as in the main run).}
 }
 \description{
 \code{wqs_full_perm} is a full wrapper function that is a full implementation
