@@ -1,6 +1,6 @@
 Package: wqspt
 Title: Permutation Test for Weighted Quantile Sum Regression
-Version: 1.0.1
+Version: 1.0.2
 Author: Drew Day [aut, cre], James Peng [aut], Adam Szpiro [aut]
 Maintainer: Drew Day <Drew.Day@seattlechildrens.org>
 Authors@R: c(
@@ -11,7 +11,7 @@ Description: Implements a permutation test method for the weighted quantile sum 
 License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.2
+RoxygenNote: 7.3.2
 Imports: 
     rlang, gWQS, pbapply, ggplot2, mvtnorm, viridis, extraDistr, cowplot, methods
 Suggests: 

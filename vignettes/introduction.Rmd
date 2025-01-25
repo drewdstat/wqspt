@@ -411,7 +411,7 @@ perm_test_res3 <- wqs_full_perm(wqs_form,
 wqspt_plot(perm_test_res3)$FullPlot
 ```
 
-## Example 4 (using `wqs_full_perm` on binary outcome example)
+## Example 4 (using `wqs_full_perm` with a binary outcome variable)
 
 This is an example in which we apply the logistic regression version of the WQS 
 permutation test. 

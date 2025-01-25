@@ -42,45 +42,46 @@ z covariates). This is either a variance-covariance matrix of dimensions
 covariance matrix will have ones on the diagonal and that single value will be
 all the off-diagonal values. For example, if this input were 0.4 and there were
 two mixture components and no covariates, the variance-covariance matrix would
-be matrix(c(1, 0.4, 0.4, 1), nrow = 2, ncol = 2). The default value is 0,
+be \code{matrix(c(1, 0.4, 0.4, 1), nrow = 2, ncol = 2)}. The default value is 0,
 giving a variance-covariance matrix with variances of 1 and covariances of 0.}
 
 \item{eps}{Dispersion parameter. If the family is "gaussian", this corresponds
 to the residual standard deviation. If the family is "binomial" or "poisson",
 this parameter is ignored. If the family is "negbin", this represents the "size"
 parameter of the negative binomial distribution (see the documentation for the
-rnbinom function for more details).}
+\code{rnbinom} function for more details).}
 
 \item{truewqsbeta}{Simulated WQS beta_1 value. If NULL, then this value will
-be randomly sampled depending on the parameter rnd_wqsbeta_dir.}
+be randomly sampled depending on the parameter \code{rnd_wqsbeta_dir}.}
 
 \item{truebeta0}{Simulated beta_0 value. If NULL, then this value will be
 randomly sampled from a standard normal distribution.}
 
 \item{truewts}{Simulated vector of mixture weights. If NULL, then this value
 will be randomly sampled from a Dirichlet distribution with a vector of alpha
-values all equal to 1 (see the documentation for the extraDistr::rdirichlet
-function documentation for more details).}
+values all equal to 1 (see the documentation for the
+\code{extraDistr::rdirichlet} function documentation for more details).}
 
 \item{truegamma}{Simulated gamma vector. If NULL, then this value will be
 randomly sampled from a standard normal distribution.}
 
 \item{rnd_wqsbeta_dir}{Direction of randomly sampled truewqsbeta (if
-truewqsbeta = NULL). The options are "positive", "negative", or NULL. If
+\code{truewqsbeta = NULL}). The options are "positive", "negative", or NULL. If
 "positive" or "negative", the truewqsbeta will be sampled from a standard
 half normal distribution in either of those respective directions. If NULL,
 then truewqsbeta will be sampled from a standard normal distribution.}
 
-\item{seed}{Random seed.}
+\item{seed}{Random seed. This defaults to 101.}
 
-\item{q}{Number of quantiles.}
+\item{q}{Number of quantiles. This defaults to 10.}
 
 \item{family}{Family for the generative model creating the outcome vector.
-Options include "gaussian" or gaussian(link = "identity") for a continuous
-outcome, "binomial" or binomial() with any accepted link function for a binary
-outcome, and finally for count outcomes this can be "poisson" or
-poisson(link="log") for the Poisson distributed outcome values, or "negbin"
-for negative binomial distributed outcome values.}
+Options include \code{"gaussian"} or \code{gaussian(link = "identity")} for
+a continuous outcome, \code{"binomial"} or \code{binomial()} with any
+accepted link function for a binary outcome, and finally for count outcomes
+this can be \code{"poisson"} or \code{poisson(link="log")} for the Poisson
+distributed outcome values, or \code{"negbin"} for negative binomial
+distributed outcome values.}
 }
 \value{
 \code{wqs_perm} returns a list of:
@@ -117,7 +118,7 @@ summary(glm(wqsform,data=Dat,family="gaussian"))$coef[1:2,]
 \donttest{
 perm_test_res <- wqs_full_perm(formula = wqsform, data = testsim_gaussian$Data, 
                                mix_name = paste0("T",1:10), q = 10, b_main = 5, 
-                               b_perm = 5, b1_pos = TRUE, b1_constr = FALSE, 
+                               b_perm = 5, b1_pos = TRUE, b_constr = FALSE, 
                                niter = 4, seed = 16, plan_strategy = "multicore", 
                                stop_if_nonsig = FALSE)
 }

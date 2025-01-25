@@ -178,7 +178,7 @@ wqspt_plot <- function(wqsptresults, FixedPalette = FALSE, InclKey = FALSE,
         legend.title = element_text(size = 14, face = "bold"),
         legend.text = element_text(size = 14)
       )
-    l1 <- cowplot::get_legend(legplot)
+    l1 <- get_legend2(legplot)
     
     gg2 <- ggplot(WQSwts, aes(x = .data$Outcome, y = .data$Exposure)) + 
       theme_classic() +
@@ -216,7 +216,7 @@ wqspt_plot <- function(wqsptresults, FixedPalette = FALSE, InclKey = FALSE,
         legend.text = element_text(size = LegendTextSize),
         legend.key.size = unit(0.4, units = 'in')
       )
-    l1 <- cowplot::get_legend(gg2)
+    l1 <- get_legend2(gg2)
   }
   
   if (InclKey) {
