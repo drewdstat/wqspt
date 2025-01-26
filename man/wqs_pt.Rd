@@ -103,17 +103,16 @@ required.
 library(gWQS)
 
 # mixture names
-PCBs <- names(wqs_data)[1:17] #half of the original 34 for quick computation
+PCBs <- names(wqs_data)[1:10] #1st 10 of the original 34 for quick computation
 
-# create reference wqs object with 5 bootstraps
+# create reference wqs object with 4 bootstraps
 wqs_main <- gwqs(yLBX ~ wqs, mix_name = PCBs, data = wqs_data, q = 10, 
-                 validation = 0, b = 5, b1_pos = TRUE, b_constr = FALSE,
+                 validation = 0, b = 4, b1_pos = TRUE, b_constr = FALSE,
                  plan_strategy = "multicore", family = "gaussian", seed = 16)
 # Note: We recommend niter = 1000 for the main WQS regression. This example
 # has a lower number of bootstraps to serve as a shorter test run.
 
-# run permutation test
-
+# run the permutation test
 perm_test_res <- wqs_pt(wqs_main, niter = 3, b1_pos = TRUE)
 
 # Note: The default value of niter = 200 is the recommended parameter value. 

@@ -90,12 +90,17 @@ with the permutation test, if \code{stop_if_nonsig = TRUE}.}
 \code{wqs_full_perm} returns an object of class \code{wqs_perm},
 which contains three sublists:
 
-\item{perm_test}{List containing: (1) \code{pval}: permutation test p-value,
-(2) (linear regression only) \code{testbeta1}: reference WQS regression
-coefficient beta1 value, (3) (linear regression only) \code{betas}: Vector
-of beta values from each permutation test run, (4) (logistic regression only)
-\code{testpval}: test reference p-value, (5) (logistic regression only)
-\code{permpvals}: p-values from the null models.}
+\item{perm_test}{List containing:
+\itemize{
+\item \code{pval}: permutation test p-value
+\item (linear regression only) \code{testbeta1}: reference WQS regression
+coefficient beta1 value
+\item (linear regression only) \code{betas}: Vector of beta values from
+each permutation test run
+\item (logistic regression only) \code{testpval}: test reference p-value
+\item (logistic regression only) \code{permpvals}: p-values from the null models
+}
+}
 \item{gwqs_main}{Main gWQS object (same as model input). This will now
 include an additional object "seed" that returns the seed used for this main
 WQS regression.}
@@ -112,12 +117,16 @@ permutation test to determine the significance of the WQS coefficient.
 library(gWQS)
 
 # mixture names
-PCBs <- names(wqs_data)[1:17] #half of the original 34 for quick computation
+PCBs <- names(wqs_data)[1:10] #10 of the original 34 for a quick example
+
+# quick example with only 4 bootstraps each WQS regression iteration, and 
+# only 3 iterations
 
 perm_test_res <- wqs_full_perm(formula = yLBX ~ wqs, data = wqs_data, 
-                                mix_name = PCBs, q = 10, b_main = 5, 
-                                b_perm = 5, b1_pos = TRUE, b_constr = FALSE, 
-                                niter = 3, seed = 16, plan_strategy = "multicore", 
+                                mix_name = PCBs, q = 10, b_main = 4, 
+                                b_perm = 4, b1_pos = TRUE, b_constr = FALSE, 
+                                niter = 3, seed = 16, 
+                                plan_strategy = "multicore", 
                                 stop_if_nonsig = FALSE)
 
 # Note: The default values of b_main = 1000, b_perm = 200, and niter = 200 
