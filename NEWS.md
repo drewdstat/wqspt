@@ -10,5 +10,13 @@ anywhere besides on the right of the plot. Since `wqspt_plot` extracts a legend
 positioned on the bottom of a plot to be included in the plot output if 
 `InclKey = TRUE`, this was previously throwing an error.
 
+* Added the arguments `LegendWidthIn` and `LegendHeightIn` to `wqspt_plot` to 
+control the bottom legend width and height, respectively.
+
+* Added some examples to the documentation for `wqspt_plot` to better illustrate 
+its use.
+
 * Replaced all `b1_constr` arguments with `b_constr` to match the change in the 
 name of this argument in the latest version of the `gWQS` package (v3.0.5).
+
+* Replaced URL links to referenced papers with doi.org links.

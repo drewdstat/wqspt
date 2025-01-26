@@ -19,7 +19,11 @@
 #' @param StripTextSize Text size for the plot strip labels. Defaults to 14.
 #' @param AxisTextSize.Y Text size for the y axis text. Defaults to 12.
 #' @param AxisTextSize.X Text size for the x axis text. Defaults to 12.
-#' @param LegendTextSize Text text size for the legend text. Defaults to 14.
+#' @param LegendTextSize Text size for the legend text. Defaults to 14.
+#' @param LegendWidthIn Width of the horizontal bottom legend in inches. 
+#' Defaults to 0.4.
+#' @param LegendHeightIn Height of the horizontal bottom legend in inches. 
+#' Defaults to 0.4.
 #' @param PvalLabelSize The geom_text size for the permutation test p-value 
 #' label. Defaults to 5.
 #' @param HeatMapTextSize The geom_text size for the mixture weight heatmap 
@@ -27,24 +31,59 @@
 #'
 #' @return Returns a list with 4 objects. 
 #' 
-#' \item{FullPlot}{Two plots stacked vertically: (1) Forest plot of the beta WQS 
+#' \item{FullPlot}{Two plots stacked vertically: (1) A forest plot of the beta WQS 
 #' coefficient with the naive confidence intervals as well as the permutation 
-#' test p-value (2) A heatmap of the WQS weights for each mixture component.}
+#' test p-value and (2) a heatmap of the WQS weights for each mixture component.}
 #' \item{CoefPlot}{Forest plot of the beta WQS 
 #' coefficient with the naive confidence intervals as well as the permutation 
 #' test p-value.}
 #' \item{WtPlot}{A heatmap of the WQS weights for each mixture component.}
-#' \item{WtLegend}{A legend for the weights in the WtPlot heatmap.}
+#' \item{WtLegend}{A legend for the weights in the WtPlot heatmap, saved as a 
+#' TableGrob object.}
 #' 
 #' @importFrom rlang .data
 #' 
-#' @export
+#' @export wqspt_plot
+#' 
+#' @examples
+#' \donttest{
+#' library(gWQS)
 #'
+#' # mixture names
+#' PCBs <- names(wqs_data)[1:10] #10 of the original 34 for a quick example
+#' 
+#' #quick example WQSPT model
+#' perm_test_res <- wqs_full_perm(formula = yLBX ~ wqs, data = wqs_data, 
+#'                                 mix_name = PCBs, q = 10, b_main = 4, 
+#'                                 b_perm = 4, b1_pos = TRUE, b_constr = FALSE, 
+#'                                 niter = 3, seed = 16, 
+#'                                 plan_strategy = "multicore", 
+#'                                 stop_if_nonsig = FALSE)
+#' 
+#' #plot with continuous heatmap for mixture weights, omitting the heatmap 
+#' # legend on the plot
+#' wqsptplot <- wqspt_plot(perm_test_res)
+#' 
+#' #plot the full plot with the WQS coefficient forest plot above & the mixture 
+#' # weight heatmap below
+#' wqsptplot$FullPlot
+#' 
+#' #plot with binned heatmap for mixture weights
+#' wqsptplot <- wqspt_plot(perm_test_res, InclKey = TRUE, LegendWidthIn = 0.8, 
+#' FixedPalette = TRUE)
+#' 
+#' #plot the full plot with the WQS coefficient forest plot above & the mixture 
+#' # weight heatmap below
+#' wqsptplot$FullPlot
+#' }
+#' 
+#' 
 wqspt_plot <- function(wqsptresults, FixedPalette = FALSE, InclKey = FALSE, 
                        AltMixName = NULL, AltOutcomeName = NULL, 
                        ViridisPalette = "D", StripTextSize = 14,
                        AxisTextSize.Y = 12, AxisTextSize.X = 12, 
-                       LegendTextSize = 14, PvalLabelSize = 5, 
+                       LegendTextSize = 14, LegendWidthIn = 0.4, 
+                       LegendHeightIn = 0.4, PvalLabelSize = 5, 
                        HeatMapTextSize = 5) {
   
   wqs_fam <- wqsptresults$family
@@ -52,19 +91,16 @@ wqspt_plot <- function(wqsptresults, FixedPalette = FALSE, InclKey = FALSE,
   
   thisfit <- wqsptresults$gwqs_main$fit
   b1pos <- wqsptresults$gwqs_main$b1_pos
-  if (b1pos)
-    thisdir <- "Positive"
-  else
+  if (b1pos) thisdir <- "Positive" else
     thisdir <- "Negative"
-  if (!is.null(AltOutcomeName))
+  if (!is.null(AltOutcomeName)){
     outname <- AltOutcomeName
-  else
-    outname <- as.character(attr(thisfit$terms, "variables")[[2]])
+  } else {
+    outname <- as.character(attr(thisfit$terms, "variables")[[2]])}
   
   if (wqs_fam == "gaussian"){
     pval <- summary(thisfit)$coef["wqs", "Pr(>|t|)"]
-  }
-  else {
+  } else {
     pval <- summary(thisfit)$coef["wqs", "Pr(>|z|)"]
   }
   
@@ -86,10 +122,11 @@ wqspt_plot <- function(wqsptresults, FixedPalette = FALSE, InclKey = FALSE,
       WQSResults$UCI + (WQSResults$UCI / 10))
   if (widercirange[1] < 0 & widercirange[2] > 0) {
     gg1 <-
-      ggplot(WQSResults, aes(x = .data$Outcome, y = .data$Beta)) + geom_point(size = 3) +
+      ggplot(WQSResults, aes(x = .data$Outcome, y = .data$Beta)) + 
+      geom_point(size = 3) +
       theme_bw() +
       geom_errorbar(aes(ymin = .data$LCI, ymax = .data$UCI),
-                    size = 1,
+                    linewidth = 1,
                     width = 0.75) +
       geom_hline(yintercept = 0) +
       geom_text(aes(label = .data$PTlabel, y = .data$UCI + cirange / 10), 
@@ -107,7 +144,7 @@ wqspt_plot <- function(wqsptresults, FixedPalette = FALSE, InclKey = FALSE,
       ggplot(WQSResults, aes(x = .data$Outcome, y = .data$Beta)) + geom_point(size = 3) +
       theme_bw() +
       geom_errorbar(aes(ymin = .data$LCI, ymax = .data$UCI),
-                    size = 1,
+                    linewidth = 1,
                     width = 0.75) +
       geom_text(aes(label = .data$PTlabel, y = .data$UCI + cirange / 10), 
                 size = PvalLabelSize) +
@@ -157,10 +194,10 @@ wqspt_plot <- function(wqsptresults, FixedPalette = FALSE, InclKey = FALSE,
       WQSwts$Weight == "<0.1",
       mypal[1],
       ifelse(
-        WQSwts$Weight == "0.1-0.2",
+        WQSwts$Weight == "0.1-<0.2",
         mypal[2],
         ifelse(
-          WQSwts$Weight == "0.2-0.3",
+          WQSwts$Weight == "0.2-<0.3",
           mypal[3],
           ifelse(is.na(WQSwts$Weight) == T, "grey50", mypal[4])
         )
@@ -176,7 +213,9 @@ wqspt_plot <- function(wqsptresults, FixedPalette = FALSE, InclKey = FALSE,
       theme(
         legend.position = "bottom",
         legend.title = element_text(size = 14, face = "bold"),
-        legend.text = element_text(size = 14)
+        legend.text = element_text(size = 14),
+        legend.key.height = unit(LegendHeightIn, units = 'in'),
+        legend.key.width = unit(LegendWidthIn, units = 'in')
       )
     l1 <- get_legend2(legplot)
     
@@ -195,7 +234,9 @@ wqspt_plot <- function(wqsptresults, FixedPalette = FALSE, InclKey = FALSE,
         strip.background.y = element_rect(fill = "grey85", colour = "grey20"),
         legend.position = "bottom",
         legend.title = element_text(size = LegendTextSize, face = "bold"),
-        legend.text = element_text(size = LegendTextSize)
+        legend.text = element_text(size = LegendTextSize),
+        legend.key.height = unit(LegendHeightIn, units = 'in'),
+        legend.key.width = unit(LegendWidthIn, units = 'in')
       )
   } else {
     gg2 <- ggplot(WQSwts, aes(x = .data$Outcome, y = .data$Exposure)) + 
@@ -214,7 +255,8 @@ wqspt_plot <- function(wqsptresults, FixedPalette = FALSE, InclKey = FALSE,
         legend.position = "bottom",
         legend.title = element_text(size = LegendTextSize, face = "bold"),
         legend.text = element_text(size = LegendTextSize),
-        legend.key.size = unit(0.4, units = 'in')
+        legend.key.height = unit(LegendHeightIn, units = 'in'),
+        legend.key.width = unit(LegendWidthIn, units = 'in')
       )
     l1 <- get_legend2(gg2)
   }

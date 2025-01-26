@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 # Introduction 
 
 Weighted quantile sum (WQS) regression is a statistical technique to evaluate the 
-effect of complex exposure mixtures on an outcome ([Carrico 2015](https://link.springer.com/article/10.1007/s13253-014-0180-3)). It is a 
+effect of complex exposure mixtures on an outcome ([Carrico 2015](https://doi.org/10.1007/s13253-014-0180-3)). It is a 
 single-index method which estimates a combined mixture sum effect as well as weights 
 determining each individual mixture component's contributions to the sum effect. 
 However, the model features a statistical power and Type I error (i.e., false positive) 
@@ -34,15 +34,15 @@ We recently proposed alternative methods based on a permutation test that should
 reliably allow for both high power and low false positive rate when utilizing WQS
 regression. The permutation test is a method of obtaining a p-value by simulating 
 the null distribution through permutations of the data. The permutation test 
-algorithm is described more in detail and validated in [Day et al. 2022](https://ehp.niehs.nih.gov/doi/10.1289/EHP10570). 
+algorithm is described more in detail and validated in [Day et al. 2022](https://doi.org/10.1289/EHP10570). 
 The version of this permutation test used for a continuous outcome 
-variable has been applied in [Loftus et al. 2021](https://www.sciencedirect.com/science/article/pii/S0160412021000337), 
-[Day et al. 2021](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9291724/), 
-[Wallace et al. 2022](https://www.sciencedirect.com/science/article/pii/S0160412021006644), 
-[Barrett et al. 2022](https://www.sciencedirect.com/science/article/pii/S0160412022000034),
-and [Freije et al. 2022](https://www.sciencedirect.com/science/article/pii/S0160412022001726).
+variable has been applied in [Loftus et al. 2021](https://doi.org/10.1016/j.envint.2021.106409), 
+[Day et al. 2021](https://doi.org/10.1016/j.envint.2020.106330), 
+[Wallace et al. 2022](https://doi.org/10.1016/j.envint.2021.107039), 
+[Barrett et al. 2022](https://doi.org/10.1016/j.envint.2022.107078),
+and [Freije et al. 2022](https://doi.org/10.1016/j.envint.2022.107246).
 Another version of the permutation test adapted for WQS logistic regression with a binary outcome
-variable is applied in [Loftus et al. 2022](https://www.sciencedirect.com/science/article/pii/S0160412022004214).
+variable is applied in [Loftus et al. 2022](https://doi.org/10.1016/j.envint.2022.107494).
 
 ## About WQS 
 
@@ -56,7 +56,7 @@ coefficient for the weighted quantile sum, $\sum_{i=1}^{c} w_i {X_q}_i$ is the
 weighted index for the set of quantiled mixture exposures, $Z$ is the set of 
 covariates, and $\gamma$ is the regression coefficients for the covariates. 
 
-A full description of the WQS methodology is described in [Carrico 2015](https://link.springer.com/article/10.1007/s13253-014-0180-3). 
+A full description of the WQS methodology is described in [Carrico 2015](https://doi.org/10.1007/s13253-014-0180-3). 
 
 ## Permutation Test 
 
@@ -158,7 +158,7 @@ in the permutation test iterated WQS regressions as that specified in the main W
 * `b1_pos`: A logical value that indicates whether beta values should be positive 
 or negative.
 * `rs`: A logical value indicating whether the random subset implementation for WQS 
-should be performed ([Curtin 2019](https://www.tandfonline.com/doi/abs/10.1080/03610918.2019.1577971?journalCode=lssp20))
+should be performed ([Curtin 2019](https://doi.org/10.1080/03610918.2019.1577971))
 * `plan_strategy`: Evaluation strategy for the plan function ("sequential", 
 "transparent", "multisession", "multicore", "multiprocess", "cluster",
 or "remote"). See the documentation for the future::plan function for full details.  
@@ -240,8 +240,8 @@ a non-significant result, then there likely is no reason to run the permutation
 test, as it will produce a result which is more conservative than the naive 
 method (i.e., it will have a larger p-value). This is the strategy that we have 
 applied in our published papers 
-([Loftus et al. 2021](https://www.sciencedirect.com/science/article/pii/S0160412021000337) and 
-[Day et al. 2021](https://www.sciencedirect.com/science/article/pii/S0160412020322856)). 
+([Loftus et al. 2021](https://doi.org/10.1016/j.envint.2021.106409) and 
+[Day et al. 2021](https://doi.org/10.1016/j.envint.2020.106330)). 
 
 # Examples 
 

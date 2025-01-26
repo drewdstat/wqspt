@@ -15,6 +15,8 @@ wqspt_plot(
   AxisTextSize.Y = 12,
   AxisTextSize.X = 12,
   LegendTextSize = 14,
+  LegendWidthIn = 0.4,
+  LegendHeightIn = 0.4,
   PvalLabelSize = 5,
   HeatMapTextSize = 5
 )
@@ -46,7 +48,13 @@ Defaults to 'D'.}
 
 \item{AxisTextSize.X}{Text size for the x axis text. Defaults to 12.}
 
-\item{LegendTextSize}{Text text size for the legend text. Defaults to 14.}
+\item{LegendTextSize}{Text size for the legend text. Defaults to 14.}
+
+\item{LegendWidthIn}{Width of the horizontal bottom legend in inches.
+Defaults to 0.4.}
+
+\item{LegendHeightIn}{Height of the horizontal bottom legend in inches.
+Defaults to 0.4.}
 
 \item{PvalLabelSize}{The geom_text size for the permutation test p-value
 label. Defaults to 5.}
@@ -57,15 +65,50 @@ labels. Defaults to 5.}
 \value{
 Returns a list with 4 objects.
 
-\item{FullPlot}{Two plots stacked vertically: (1) Forest plot of the beta WQS
+\item{FullPlot}{Two plots stacked vertically: (1) A forest plot of the beta WQS
 coefficient with the naive confidence intervals as well as the permutation
-test p-value (2) A heatmap of the WQS weights for each mixture component.}
+test p-value and (2) a heatmap of the WQS weights for each mixture component.}
 \item{CoefPlot}{Forest plot of the beta WQS
 coefficient with the naive confidence intervals as well as the permutation
 test p-value.}
 \item{WtPlot}{A heatmap of the WQS weights for each mixture component.}
-\item{WtLegend}{A legend for the weights in the WtPlot heatmap.}
+\item{WtLegend}{A legend for the weights in the WtPlot heatmap, saved as a
+TableGrob object.}
 }
 \description{
 Generates plots to help visualize and summarize WQS permutation test results.
+}
+\examples{
+\donttest{
+library(gWQS)
+
+# mixture names
+PCBs <- names(wqs_data)[1:10] #10 of the original 34 for a quick example
+
+#quick example WQSPT model
+perm_test_res <- wqs_full_perm(formula = yLBX ~ wqs, data = wqs_data, 
+                                mix_name = PCBs, q = 10, b_main = 4, 
+                                b_perm = 4, b1_pos = TRUE, b_constr = FALSE, 
+                                niter = 3, seed = 16, 
+                                plan_strategy = "multicore", 
+                                stop_if_nonsig = FALSE)
+
+#plot with continuous heatmap for mixture weights, omitting the heatmap 
+# legend on the plot
+wqsptplot <- wqspt_plot(perm_test_res)
+
+#plot the full plot with the WQS coefficient forest plot above & the mixture 
+# weight heatmap below
+wqsptplot$FullPlot
+
+#plot with binned heatmap for mixture weights
+wqsptplot <- wqspt_plot(perm_test_res, InclKey = TRUE, LegendWidthIn = 0.8, 
+FixedPalette = TRUE)
+
+#plot the full plot with the WQS coefficient forest plot above & the mixture 
+# weight heatmap below
+wqsptplot$FullPlot
+}
+
+
 }
