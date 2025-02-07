@@ -117,7 +117,8 @@ permutation test to determine the significance of the WQS coefficient.
 library(gWQS)
 
 # mixture names
-PCBs <- names(wqs_data)[1:10] #10 of the original 34 for a quick example
+PCBs <- names(wqs_data)[1:5] 
+# Only using 1st 5 of the original 34 exposures for this quick example
 
 # quick example with only 4 bootstraps each WQS regression iteration, and 
 # only 3 iterations

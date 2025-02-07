@@ -103,7 +103,8 @@ required.
 library(gWQS)
 
 # mixture names
-PCBs <- names(wqs_data)[1:10] #1st 10 of the original 34 for quick computation
+PCBs <- names(wqs_data)[1:5] 
+ # Only using 1st 5 of the original 34 exposures for this quick example
 
 # create reference wqs object with 4 bootstraps
 wqs_main <- gwqs(yLBX ~ wqs, mix_name = PCBs, data = wqs_data, q = 10, 
