@@ -19,7 +19,8 @@ knitr::opts_chunk$set(
 # Introduction 
 
 Weighted quantile sum (WQS) regression is a statistical technique to evaluate the 
-effect of complex exposure mixtures on an outcome ([Carrico 2015](https://doi.org/10.1007/s13253-014-0180-3)). It is a 
+effect of complex exposure mixtures on an outcome (
+[Carrico 2015](https://doi.org/10.1007/s13253-014-0180-3)). It is a 
 single-index method which estimates a combined mixture sum effect as well as weights 
 determining each individual mixture component's contributions to the sum effect. 
 However, the model features a statistical power and Type I error (i.e., false positive) 
@@ -34,15 +35,27 @@ We recently proposed alternative methods based on a permutation test that should
 reliably allow for both high power and low false positive rate when utilizing WQS
 regression. The permutation test is a method of obtaining a p-value by simulating 
 the null distribution through permutations of the data. The permutation test 
-algorithm is described more in detail and validated in [Day et al. 2022](https://doi.org/10.1289/EHP10570). 
+algorithm is described more in detail and validated in 
+[Day et al. 2022](https://doi.org/10.1289/EHP10570). 
 The version of this permutation test used for a continuous outcome 
 variable has been applied in [Loftus et al. 2021](https://doi.org/10.1016/j.envint.2021.106409), 
 [Day et al. 2021](https://doi.org/10.1016/j.envint.2020.106330), 
 [Wallace et al. 2022](https://doi.org/10.1016/j.envint.2021.107039), 
 [Barrett et al. 2022](https://doi.org/10.1016/j.envint.2022.107078),
-and [Freije et al. 2022](https://doi.org/10.1016/j.envint.2022.107246).
+[Freije et al. 2022](https://doi.org/10.1016/j.envint.2022.107246), 
+[Wallace et al. 2023](https://doi.org/10.1016/j.envres.2022.114759),
+[Sun et al. 2023](https://doi.org/10.1016/j.envint.2023.108009), 
+[Barrett et al. 2024](https://doi.org/10.1016/j.envint.2024.108425), and 
+[Hazlehurst et al. 2024](https://doi.org/10.1007/s11524-024-00829-z).
+
 Another version of the permutation test adapted for WQS logistic regression with a binary outcome
-variable is applied in [Loftus et al. 2022](https://doi.org/10.1016/j.envint.2022.107494).
+variable is applied in [Loftus et al. 2022](https://doi.org/10.1016/j.envint.2022.107494) 
+and described in the supplement of that paper. This WQS logistic regression 
+with the permutation test has also been utilized in 
+[Barrett et al. 2024](https://doi.org/10.1016/j.envint.2024.108425), 
+[Day et al. 2024](https://doi.org/10.1016/j.envint.2024.108486), 
+[Sherris et al. 2024](https://doi.org/10.1186/s12940-024-01066-2), and 
+[Yin et al. 2024](https://doi.org/10.1016/j.ecoenv.2024.116428).
 
 ## About WQS 
 
@@ -159,10 +172,18 @@ in the permutation test iterated WQS regressions as that specified in the main W
 or negative.
 * `rs`: A logical value indicating whether the random subset implementation for WQS 
 should be performed ([Curtin 2019](https://doi.org/10.1080/03610918.2019.1577971))
-* `plan_strategy`: Evaluation strategy for the plan function ("sequential", 
-"transparent", "multisession", "multicore", "multiprocess", "cluster",
-or "remote"). See the documentation for the future::plan function for full details.  
-* `seed`: Random seed for the permutation test WQS reference run
+* `plan_strategy`: Evaluation strategy for the `plan` function (`"sequential"`, 
+`"multisession"`, `"multicore"`, or `"cluster"`). See the documentation for the 
+`future::plan` function for full details. This defaults to `"multicore"`.
+* `seed`: An optional random seed for the permutation test WQS regression 
+reference run. This defaults to `NULL`, meaning that no random seed is set.
+* `nworkers`: An optional argument to specify the number of parallel processes 
+to use when `plan_strategy` is not `"sequential"`. By default this uses 
+`future::availableWorkers()` to determine the number of parallel processes. If 
+one is submitting `wqs_pt` to a high-performance computing cluster, one should 
+make sure that this number is less than or equal to the number of allotted 
+computing cores.
+* `...`: Additional arguments to be passed to the `gWQS::gwqs` function.
 
 The arguments `b1_pos` and `rs` should be consistent with the inputs chosen in 
 the `model` object. The `seed` should ideally be consistent with the seed set 
@@ -278,7 +299,8 @@ sim_res1 <- wqs_sim(nmix = 10,
 
 sim_data1 <- sim_res1$Data
 
-wqs_form <- formula(paste0("y ~ wqs + ", paste(paste0("C",1:10), collapse="+")))
+wqs_form <- formula(paste0("y ~ wqs + ", paste(paste0("C", 1:10), 
+                                               collapse = "+")))
 ```
 
 Now we run WQS regression on the simulated data.  
@@ -288,8 +310,9 @@ Now we run WQS regression on the simulated data.
 mix_names1 <- colnames(sim_data1)[2:11]
 
 # create reference wqs object
-wqs_main1 <- gwqs(wqs_form, mix_name = mix_names1, data = sim_data1, q = 10, validation = 0,
-                  b = 20, b1_pos = T, plan_strategy = "multicore", family = "gaussian", 
+wqs_main1 <- gwqs(wqs_form, mix_name = mix_names1, data = sim_data1, 
+                  q = 10, validation = 0, b = 20, b1_pos = TRUE, 
+                  plan_strategy = "multicore", family = "gaussian", 
                   seed = 16)
 ```
 
@@ -297,7 +320,8 @@ Finally, we can perform a permutation test on the WQS object.
 
 ```{r, eval=F}
 # run permutation test
-perm_test_res1 <- wqs_pt(wqs_main1, niter = 50, boots = 5, b1_pos = T, seed = 16)
+perm_test_res1 <- wqs_pt(wqs_main1, niter = 50, boots = 5, b1_pos = TRUE, 
+                         seed = 16)
 ```
 
 Note that the naive WQS regression produces a significant result for the 
@@ -360,12 +384,14 @@ Now we run WQS regression as well as the permutation test on the simulated data.
 mix_names2 <- colnames(sim_data2)[2:11]
 
 # create reference wqs object
-wqs_main2 <- gwqs(wqs_form, mix_name = mix_names2, data = sim_data2, q = 10, validation = 0,
-                  b = 20, b1_pos = T, plan_strategy = "multicore", family = "gaussian", 
+wqs_main2 <- gwqs(wqs_form, mix_name = mix_names2, data = sim_data2, q = 10, 
+                  validation = 0, b = 20, b1_pos = TRUE, 
+                  plan_strategy = "multicore", family = "gaussian", 
                   seed = 16)
 
 # run permutation test
-perm_test_res2 <- wqs_pt(wqs_main2, niter = 50, boots = 5, b1_pos = T, seed = 16)
+perm_test_res2 <- wqs_pt(wqs_main2, niter = 50, boots = 5, b1_pos = TRUE, 
+                         seed = 16)
 ```
 
 Note that the naive WQS regression produces a significant result for the 
@@ -402,7 +428,7 @@ perm_test_res3 <- wqs_full_perm(wqs_form,
                                q = 10,
                                b_main = 20,
                                b_perm = 5,
-                               b1_pos = T,
+                               b1_pos = TRUE,
                                niter = 50,
                                seed = 16,
                                plan_strategy = "multicore")
@@ -443,7 +469,7 @@ perm_test_res4 <- wqs_full_perm(wqs_form,
                                q = 10,
                                b_main = 20,
                                b_perm = 5,
-                               b1_pos = T,
+                               b1_pos = TRUE,
                                niter = 50,
                                seed = 16,
                                plan_strategy = "multicore",
@@ -454,46 +480,87 @@ wqspt_plot(perm_test_res4)$FullPlot
 ```
 
 # References
-* Barrett, E. S., Corsetti, M., Day, D., Thurston, S. W., Loftus, C. T., Karr, C. J., ...
-& Sathyanarayana, S. (2022). Prenatal phthalate exposure in relation to placental 
-corticotropin releasing hormone (pCRH) in the CANDLE cohort. Environment International, 
-160, 107078.
+* Barrett, E. S., Corsetti, M., Day, D., Thurston, S. W., Loftus, C. T., 
+Karr, C. J., ... & Sathyanarayana, S. (2022). Prenatal phthalate exposure in 
+relation to placental corticotropin releasing hormone (pCRH) in the CANDLE 
+cohort. *Environment International*, 160, 107078.
 
-* Carrico, C., Gennings, C., Wheeler, D. C., & Factor-Litvak, P. (2015). Characterization 
-of weighted quantile sum regression for highly correlated data in a risk analysis 
-setting. Journal of Agricultural, Biological, and Environmental Statistics, 20(1), 
-100-120.
+* Barrett, E. S., Day, D. B., Szpiro, A., Peng, J., Loftus, C. T., Ziausyte, U., 
+... & Bush, N. R. (2024). Prenatal exposures to phthalates and life events 
+stressors in relation to child behavior at age 4–6: a combined cohort analysis. 
+*Environment International*, 183, 108425.
 
-* Curtin, P., Kellogg, J., Cech, N., & Gennings, C. (2019). A random subset implementation 
-of weighted quantile sum (WQSRS) regression for analysis of high-dimensional mixtures. 
-Communications in Statistics-Simulation and Computation, 50(4), 1119-1134.
+* Carrico, C., Gennings, C., Wheeler, D. C., & Factor-Litvak, P. (2015). 
+Characterization of weighted quantile sum regression for highly correlated data 
+in a risk analysis setting. Journal of Agricultural, Biological, and 
+*Environmental Statistics*, 20(1), 100-120.
 
-* Day, D. B., Collett, B. R., Barrett, E. S., Bush, N. R., Swan, S. H., Nguyen, R. H., 
-... & Sathyanarayana, S. (2021). Phthalate mixtures in pregnancy, autistic traits, 
-and adverse childhood behavioral outcomes. Environment International, 147, 106330.
+* Curtin, P., Kellogg, J., Cech, N., & Gennings, C. (2019). A random subset 
+implementation of weighted quantile sum (WQSRS) regression for analysis of 
+high-dimensional mixtures. 
+*Communications in Statistics-Simulation and Computation*, 50(4), 1119-1134.
 
-* Day, D. B., Sathyanarayana, S., LeWinn, K. Z., Karr, C. J., Mason, W. A., & Szpiro, A. 
-A. (2022). A permutation test-based approach to strengthening inference on the effects of 
-environmental mixtures: comparison between single index analytic methods. Environmental 
-Health Perspectives, 130(8). 
+* Day, D. B., Collett, B. R., Barrett, E. S., Bush, N. R., Swan, S. H., Nguyen, 
+R. H., ... & Sathyanarayana, S. (2021). Phthalate mixtures in pregnancy, 
+autistic traits, and adverse childhood behavioral outcomes. 
+*Environment International*, 147, 106330.
 
-* Freije, S. L., Enquobahrie, D. A., Day, D. B., Loftus, C., Szpiro, A. A., Karr, C. J.,
-... & Sathyanarayana, S. (2022). Prenatal exposure to polycyclic aromatic hydrocarbons and
-gestational age at birth. Environment International, 164, 107246.
+* Day, D. B., Sathyanarayana, S., LeWinn, K. Z., Karr, C. J., Mason, W. A., & 
+Szpiro, A. A. (2022). A permutation test-based approach to strengthening 
+inference on the effects of environmental mixtures: comparison between single 
+index analytic methods. *Environmental Health Perspectives*, 130(8). 
 
-* Loftus, C. T., Bush, N. R., Day, D. B., Ni, Y., Tylavsky, F. A., Karr, C. J., ... & 
-LeWinn, K. Z. (2021). Exposure to prenatal phthalate mixtures and neurodevelopment 
-in the Conditions Affecting Neurocognitive Development and Learning in Early 
-childhood (CANDLE) study. Environment International, 150, 106409.
+* Day, D. B., LeWinn, K. Z., Karr, C. J., Loftus, C. T., Carroll, K. N., 
+Bush, N. R., ... & program collaborators for Environmental influences on Child 
+Health Outcomes. (2024). Subpopulations of children with multiple chronic health 
+outcomes in relation to chemical exposures in the ECHO-PATHWAYS consortium. 
+*Environment International*, 185, 108486.
 
-* Loftus, C., Szpiro, A. A., Workman, T., Wallace, E. R., Hazlehurst, M. F., Day, D. B.,
-... & Karr, C. J. (2022). Maternal exposure to urinary polycyclic aromatic hydrocarbons 
-(PAH) in pregnancy and childhood asthma in a pooled multi-cohort study. Environment 
-International, 170, p.107494.
+* Freije, S. L., Enquobahrie, D. A., Day, D. B., Loftus, C., Szpiro, A. A., 
+Karr, C. J., ... & Sathyanarayana, S. (2022). Prenatal exposure to polycyclic 
+aromatic hydrocarbons and gestational age at birth. *Environment International*, 
+164, 107246.
+
+* Hazlehurst, M. F., Hajat, A., Szpiro, A. A., Tandon, P. S., Kaufman, J. D., 
+Loftus, C. T., ... & Karr, C. J. (2024). Individual and Neighborhood Level 
+Predictors of Children’s Exposure to Residential Greenspace. 
+*Journal of Urban Health*, 101(2), 349-363.
+
+* Loftus, C. T., Bush, N. R., Day, D. B., Ni, Y., Tylavsky, F. A., Karr, C. J., 
+... & LeWinn, K. Z. (2021). Exposure to prenatal phthalate mixtures and 
+neurodevelopment in the Conditions Affecting Neurocognitive Development and 
+Learning in Early childhood (CANDLE) study. 
+*Environment International*, 150, 106409.
+
+* Loftus, C., Szpiro, A. A., Workman, T., Wallace, E. R., Hazlehurst, M. F., 
+Day, D. B., ... & Karr, C. J. (2022). Maternal exposure to urinary polycyclic 
+aromatic hydrocarbons (PAH) in pregnancy and childhood asthma in a pooled 
+multi-cohort study. *Environment International*, 170, p.107494.
 
 * Renzetti, S., Curtin, P., Just, A. C., Bello, G., & Gennings, C. (2021). 
-‘gWQS: Generalized Weighted Quantile Sum Regression’. https://CRAN.R-project.org/package=gWQS.
+‘gWQS: Generalized Weighted Quantile Sum Regression’. 
+https://CRAN.R-project.org/package=gWQS.
 
-* Wallace, E. R., Ni, Y., Loftus, C. T., Sullivan, A., Masterson, E., Szpiro, A., ... & 
-Sathyanarayana, S. (2022). Prenatal urinary metabolites of polycyclic aromatic hydrocarbons
-and toddler cognition, language, and behavior. Environment International, 159, 107039.
+* Sherris, A. R., Loftus, C. T., Szpiro, A. A., Dearborn, L. C., 
+Hazlehurst, M. F., Carroll, K. N., ... & Karr, C. J. (2024). Prenatal polycyclic 
+aromatic hydrocarbon exposure and asthma at age 8–9 years in a multi-site 
+longitudinal study. *Environmental Health*, 23(1), 26.
+
+* Sun, B., Wallace, E. R., Ni, Y., Loftus, C. T., Szpiro, A., Day, D., ... & 
+LeWinn, K. Z. (2023). Prenatal exposure to polycyclic aromatic hydrocarbons and 
+cognition in early childhood. *Environment International*, 178, 108009.
+
+* Wallace, E. R., Ni, Y., Loftus, C. T., Sullivan, A., Masterson, E., 
+Szpiro, A., ... & Sathyanarayana, S. (2022). Prenatal urinary metabolites of 
+polycyclic aromatic hydrocarbons and toddler cognition, language, and behavior. 
+*Environment International*, 159, 107039.
+
+* Wallace, E. R., Buth, E., Szpiro, A. A., Ni, Y., Loftus, C. T., Masterson, E., 
+... & Karr, C. J. (2023). Prenatal exposure to polycyclic aromatic hydrocarbons 
+is not associated with behavior problems in preschool and early school-aged 
+children: a prospective multi-cohort study. 
+*Environmental Research*, 216, 114759.
+
+* Yin, A., Mao, L., Zhang, C., Du, B., Xiong, X., Chen, A., ... & Jiang, H. 
+(2024). Phthalate exposure and subfecundity in preconception couples: A nested 
+case-control study. *Ecotoxicology and Environmental Safety*, 278, 116428.
