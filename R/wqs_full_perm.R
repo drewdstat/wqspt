@@ -96,13 +96,13 @@
 #' PCBs <- names(wqs_data)[1:5] 
 #' # Only using 1st 5 of the original 34 exposures for this quick example
 #' 
-#' # quick example with only 4 bootstraps each WQS regression iteration, and 
-#' # only 3 iterations
+#' # quick example with only 3 bootstraps each WQS regression iteration, and 
+#' # only 2 iterations
 #' 
 #' perm_test_res <- wqs_full_perm(formula = yLBX ~ wqs, data = wqs_data, 
 #'                                 mix_name = PCBs, q = 10, b_main = 3, 
 #'                                 b_perm = 3, b1_pos = TRUE, b_constr = FALSE, 
-#'                                 niter = 3, seed = 16, 
+#'                                 niter = 2, seed = 16, 
 #'                                 plan_strategy = "multicore", 
 #'                                 stop_if_nonsig = FALSE)
 #' 

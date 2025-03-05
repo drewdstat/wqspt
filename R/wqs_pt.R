@@ -106,7 +106,7 @@
 #' # has a lower number of bootstraps to serve as a shorter test run.
 #' 
 #' # run the permutation test
-#' perm_test_res <- wqs_pt(wqs_main, niter = 3, b1_pos = TRUE)
+#' perm_test_res <- wqs_pt(wqs_main, niter = 2, b1_pos = TRUE)
 #' 
 #' # Note: The default value of niter = 200 is the recommended parameter value. 
 #' # This example has a lower niter in order to serve as a shorter test run. 
