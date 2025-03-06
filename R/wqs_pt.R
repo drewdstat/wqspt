@@ -21,11 +21,11 @@
 #' currently able to accommodate stratified weights or WQS interaction terms 
 #' (e.g., \code{y ~ wqs * sex}).
 #' 
-#' The argument \code{boots} is the number of bootstraps for the WQS regression run 
-#' in each permutation test iteration. Note that we may elect a bootstrap count 
-#' \code{boots} lower than that specified in the model object for the sake of 
-#' efficiency. If \code{boots} is not specified, then we will use the same 
-#' bootstrap count in the permutation test WQS regression runs as that 
+#' The argument \code{boots} is the number of bootstraps for the WQS regression 
+#' run in each permutation test iteration. Note that we may elect a bootstrap 
+#' count \code{boots} lower than that specified in the model object for the 
+#' sake of efficiency. If \code{boots} is not specified, then we will use the 
+#' same bootstrap count in the permutation test WQS regression runs as that 
 #' specified in the model argument.
 #'
 #' The arguments \code{b1_pos} and \code{rs} should be consistent with the 
@@ -51,16 +51,32 @@
 #' constrained to be either positive or negative. This defaults to \code{FALSE}.
 #' @param rs A logical value indicating whether random subset implementation 
 #' should be performed. 
-#' @param plan_strategy Evaluation strategy for the plan function. You can choose 
-#' among \code{"sequential"}, \code{"transparent"}, \code{"multisession"}, 
-#' \code{"multicore"}, \code{"multiprocess"}, \code{"cluster"} and 
-#' \code{"remote"}. See the \code{future::plan} documentation for full details. 
+#' @param plan_strategy Evaluation strategy for the \code{plan} function. You 
+#' can choose among \code{"sequential"}, \code{"transparent"}, 
+#' \code{"multisession"}, \code{"multicore"}, and \code{"cluster"}. This 
+#' defaults to \code{"multicore"}. See the \code{future::plan} documentation 
+#' for full details. 
 #' @param seed (optional) Random seed for the permutation test WQS reference run. 
 #' This should be the same random seed as used for the main WQS regression run. 
 #' This seed will be saved in the \code{"gwqs_perm"} object as 
 #' \code{gwqs_perm$seed}. This defaults to \code{NULL}.
+#' @param nworkers (optional) If the \code{plan_strategy} is not 
+#' \code{"sequential"}, this argument defines the number of parallel processes 
+#' to use, which can be critical when using a high-performance computing (HPC) 
+#' cluster. This should be an integer value. The default behavior for 
+#' \code{gWQS::gwqs} is to use all detected cores on a machine, but for many 
+#' HPC use scenarios, this would call in cores that have not been allotted by 
+#' the HPC scheduler, resulting in the submitted job being halted. For example, 
+#' if one has requested 14 cores on a 28-core HPC queue, one would want to set 
+#' \code{nworkers = 14}. If \code{nworkers} was greater than 14 in that case, 
+#' the HPC job would be terminated. This argument defaults to \code{NULL}, in 
+#' which case \code{length(future::availableWorkers())} will be used to 
+#' determine the number of parallel processes to use. 
+#' @param ... (optional) Additional arguments to pass to the \code{gWQS::gwqs} 
+#' function.
 #' 
-#' @return \code{wqs_pt} returns an object of class \code{"wqs_pt"}, which contains: 
+#' @return \code{wqs_pt} returns an object of class \code{"wqs_pt"}, which 
+#' contains: 
 #' 
 #' \item{perm_test}{List containing: (1) \code{pval}: permutation test p-value, 
 #' (2) (linear WQS regression only) \code{testbeta1}: reference WQS coefficient 
@@ -72,24 +88,25 @@
 #' \item{gwqs_perm}{Permutation test reference gWQS object (NULL if model 
 #' \code{family != "gaussian"} or if same number of bootstraps are used in 
 #' permutation test WQS regression runs as in the main run).}
-#' @import gWQS ggplot2 viridis cowplot stats methods
+#' @import gWQS ggplot2 viridis cowplot stats methods future
 #' @export wqs_pt
 #' 
 #' @examples
 #' library(gWQS)
 #' 
 #' # mixture names
-#' PCBs <- names(wqs_data)[1:10] #1st 10 of the original 34 for quick computation
+#' PCBs <- names(wqs_data)[1:5] 
+#'  # Only using 1st 5 of the original 34 exposures for this quick example
 #' 
 #' # create reference wqs object with 4 bootstraps
 #' wqs_main <- gwqs(yLBX ~ wqs, mix_name = PCBs, data = wqs_data, q = 10, 
-#'                  validation = 0, b = 4, b1_pos = TRUE, b_constr = FALSE,
+#'                  validation = 0, b = 3, b1_pos = TRUE, b_constr = FALSE,
 #'                  plan_strategy = "multicore", family = "gaussian", seed = 16)
 #' # Note: We recommend niter = 1000 for the main WQS regression. This example
 #' # has a lower number of bootstraps to serve as a shorter test run.
 #' 
 #' # run the permutation test
-#' perm_test_res <- wqs_pt(wqs_main, niter = 3, b1_pos = TRUE)
+#' perm_test_res <- wqs_pt(wqs_main, niter = 2, b1_pos = TRUE)
 #' 
 #' # Note: The default value of niter = 200 is the recommended parameter value. 
 #' # This example has a lower niter in order to serve as a shorter test run. 
@@ -114,7 +131,7 @@
 #' 
 wqs_pt <- function(model, niter = 200, boots = NULL, b1_pos = TRUE, 
                      b_constr = FALSE, rs = FALSE, plan_strategy = "multicore", 
-                     seed = NULL) {
+                     seed = NULL, nworkers = NULL, ...) {
   
   pbapply::pboptions(type="timer")
   
@@ -127,6 +144,9 @@ wqs_pt <- function(model, niter = 200, boots = NULL, b1_pos = TRUE,
   
   mm <- model$fit
   formchar <- as.character(formula(mm))
+  
+  if(is.null(nworkers)) nworkers = availableWorkers()
+  if(length(nworkers) > 1) nworkers = length(nworkers)
 
   if (length(formchar) == 1) {
     tempchar <- rep(NA, 3)
@@ -145,13 +165,14 @@ wqs_pt <- function(model, niter = 200, boots = NULL, b1_pos = TRUE,
   
   cl = match.call()
   yname <- formchar[2]
-  mix_name <- names(model$bres)[names(model$bres) %in% model$final_weights$mix_name]
+  mix_name <- names(model$bres)[names(model$bres) %in% 
+                                  model$final_weights$mix_name]
   
   if (!is.null(model$qi)) {
     nq <- max(sapply(model$qi, length)) - 1
   } else {
-    # this is for cases when there is no quantile transformation or it's already been
-    # done in the data frame
+    # this is for cases when there is no quantile transformation or it's 
+    # already been done in the data frame
     nq <- NULL
   }
   
@@ -167,10 +188,11 @@ wqs_pt <- function(model, niter = 200, boots = NULL, b1_pos = TRUE,
       perm_ref_wqs <- model
       ref_beta1 <- mm$coef[2]
     } else {
-      perm_ref_wqs <- gwqs(formula = formula(mm), data = Data, mix_name = mix_name, 
-                           q = nq, b = boots, rs = rs, validation = 0, 
-                           plan_strategy = plan_strategy, b1_pos = b1_pos, 
-                           b_constr = b_constr, seed = seed)
+      perm_ref_wqs <- gwqs_hpc(formula = formula(mm), data = Data, 
+                               mix_name = mix_name, q = nq, b = boots, rs = rs, 
+                               validation = 0, plan_strategy = plan_strategy, 
+                               b1_pos = b1_pos, b_constr = b_constr, 
+                               seed = seed, n_workers = nworkers, ...)
       
       ref_beta1 <- perm_ref_wqs$fit$coef[2]
     }
@@ -211,10 +233,10 @@ wqs_pt <- function(model, niter = 200, boots = NULL, b1_pos = TRUE,
       }
       
       gwqs1 <- tryCatch({
-        suppressWarnings(gwqs(formula = form1, data = newDat, mix_name = mix_name, 
+        suppressWarnings(gwqs_hpc(formula = form1, data = newDat, mix_name = mix_name, 
                               q = nq, b = boots, rs = rs, validation = 0, 
                               plan_strategy = plan_strategy, b1_pos = b1_pos, 
-                              b_constr = b_constr))
+                              b_constr = b_constr, n_workers = nworkers, ...))
       }, error = function(e) NULL)
       
       if (is.null(gwqs1))
@@ -271,12 +293,12 @@ wqs_pt <- function(model, niter = 200, boots = NULL, b1_pos = TRUE,
     Data[, model$mix_name] <- residmat
     
     lwqs1 <- tryCatch({
-      suppressWarnings(gwqs(formula = formula(mm), data = Data, 
+      suppressWarnings(gwqs_hpc(formula = formula(mm), data = Data, 
                             mix_name = model$mix_name, q = nq, b = boots, 
                             rs = rs, validation = 0, 
                             plan_strategy = plan_strategy, b1_pos = b1_pos, 
                             family = model$family, seed = seed,
-                            b_constr = b_constr))
+                            b_constr = b_constr, n_workers = nworkers, ...))
     }, error = function(e) NULL)
     
     fit1 <- lwqs1$fit
@@ -305,12 +327,12 @@ wqs_pt <- function(model, niter = 200, boots = NULL, b1_pos = TRUE,
       
       
       gwqs1 <- tryCatch({
-        suppressWarnings(gwqs(formula = form1, data = newDat, 
+        suppressWarnings(gwqs_hpc(formula = form1, data = newDat, 
                               mix_name = mix_name, q = model$q, b = boots, 
                               rs = rs, validation = 0, 
                               plan_strategy = plan_strategy, 
                               b1_pos = b1_pos, family = model$family$family,
-                              b_constr = b_constr)
+                              b_constr = b_constr, n_workers = nworkers, ...)
           )}, error = function(e) NULL)
       
       if (is.null(gwqs1))

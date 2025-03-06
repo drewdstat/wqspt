@@ -20,12 +20,13 @@ wqs_full_perm(
   plan_strategy = "multicore",
   stop_if_nonsig = FALSE,
   stop_thresh = 0.05,
+  nworkers = NULL,
   ...
 )
 }
 \arguments{
 \item{formula}{An object of class formula. The wqs term must be included in
-the formula (e.g., y ~ wqs + ...).}
+the formula (e.g., \code{y ~ wqs + ...}).}
 
 \item{data}{The \code{data.frame} to be used in the WQS regression run. This
 can be of class \code{data.frame} or it can be a tibble from the tidyverse.}
@@ -39,7 +40,7 @@ variables.}
 
 \item{b_perm}{The number of bootstraps for the iterated permutation test
 WQS regression runs and the reference WQS regression run (only for linear
-WQS regression and only when b_mean != b_perm).}
+WQS regression and only when \code{b_mean != b_perm}).}
 
 \item{b1_pos}{A logical value that indicates whether beta values should be
 positive or negative.}
@@ -61,7 +62,8 @@ should be performed.}
 \item{seed}{An integer to fix the seed. This will only impact the the initial
 WQS regression run and not the permutation test iterations. The default
 setting is NULL, which means no seed is used for the initial WQS regression.
-The seed will be saved in the "gwqs_main" object as "gwqs_main$seed".}
+The seed will be saved in the \code{"gwqs_main"} object as
+\code{"gwqs_main$seed"}.}
 
 \item{family}{A description of the error distribution and link function to be
 used in the model. This can be a character string naming a family function
@@ -74,8 +76,9 @@ with any accepted link function (e.g., \code{"logit"} or \code{"probit"}),
 not yet supported.}
 
 \item{plan_strategy}{Evaluation strategy for the plan function. You can choose
-among "sequential", "transparent", "multisession", "multicore", "multiprocess",
-"cluster" and "remote." See future::plan documentation for full details.}
+among \code{"sequential"}, \code{"multisession"}, \code{"multicore"}, and
+\code{"cluster"}. This defaults to \code{"multicore"}. See the
+\code{future::plan} documentation for full details.}
 
 \item{stop_if_nonsig}{if TRUE, the function will not proceed with the
 permutation test if the main WQS regression run produces nonsignificant
@@ -84,7 +87,21 @@ p-value.}
 \item{stop_thresh}{numeric p-value threshold required in order to proceed
 with the permutation test, if \code{stop_if_nonsig = TRUE}.}
 
-\item{...}{Other parameters to put into the gwqs function call.}
+\item{nworkers}{(optional) If the \code{plan_strategy} is not
+\code{"sequential"}, this argument defines the number of parallel processes
+to use, which can be critical when using a high-performance computing (HPC)
+cluster. This should be an integer value. The default behavior for
+\code{gWQS::gwqs} is to use all detected cores on a machine, but for many
+HPC use scenarios, this would call in cores that have not been allotted by
+the HPC scheduler, resulting in the submitted job being halted. For example,
+if one has requested 14 cores on a 28-core HPC queue, one would want to set
+\code{nworkers = 14}. If \code{nworkers} was greater than 14 in that case,
+the HPC job would be terminated. This argument defaults to \code{NULL}, in
+which case \code{length(future::availableWorkers())} will be used to
+determine the number of parallel processes to use.}
+
+\item{...}{(optional) Additional arguments to pass to the \code{gWQS::gwqs}
+function.}
 }
 \value{
 \code{wqs_full_perm} returns an object of class \code{wqs_perm},
@@ -117,15 +134,16 @@ permutation test to determine the significance of the WQS coefficient.
 library(gWQS)
 
 # mixture names
-PCBs <- names(wqs_data)[1:10] #10 of the original 34 for a quick example
+PCBs <- names(wqs_data)[1:5] 
+# Only using 1st 5 of the original 34 exposures for this quick example
 
-# quick example with only 4 bootstraps each WQS regression iteration, and 
-# only 3 iterations
+# quick example with only 3 bootstraps each WQS regression iteration, and 
+# only 2 iterations
 
 perm_test_res <- wqs_full_perm(formula = yLBX ~ wqs, data = wqs_data, 
-                                mix_name = PCBs, q = 10, b_main = 4, 
-                                b_perm = 4, b1_pos = TRUE, b_constr = FALSE, 
-                                niter = 3, seed = 16, 
+                                mix_name = PCBs, q = 10, b_main = 3, 
+                                b_perm = 3, b1_pos = TRUE, b_constr = FALSE, 
+                                niter = 2, seed = 16, 
                                 plan_strategy = "multicore", 
                                 stop_if_nonsig = FALSE)
 

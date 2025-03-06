@@ -12,7 +12,9 @@ wqs_pt(
   b_constr = FALSE,
   rs = FALSE,
   plan_strategy = "multicore",
-  seed = NULL
+  seed = NULL,
+  nworkers = NULL,
+  ...
 )
 }
 \arguments{
@@ -40,18 +42,36 @@ constrained to be either positive or negative. This defaults to \code{FALSE}.}
 \item{rs}{A logical value indicating whether random subset implementation
 should be performed.}
 
-\item{plan_strategy}{Evaluation strategy for the plan function. You can choose
-among \code{"sequential"}, \code{"transparent"}, \code{"multisession"},
-\code{"multicore"}, \code{"multiprocess"}, \code{"cluster"} and
-\code{"remote"}. See the \code{future::plan} documentation for full details.}
+\item{plan_strategy}{Evaluation strategy for the \code{plan} function. You
+can choose among \code{"sequential"}, \code{"transparent"},
+\code{"multisession"}, \code{"multicore"}, and \code{"cluster"}. This
+defaults to \code{"multicore"}. See the \code{future::plan} documentation
+for full details.}
 
 \item{seed}{(optional) Random seed for the permutation test WQS reference run.
 This should be the same random seed as used for the main WQS regression run.
 This seed will be saved in the \code{"gwqs_perm"} object as
 \code{gwqs_perm$seed}. This defaults to \code{NULL}.}
+
+\item{nworkers}{(optional) If the \code{plan_strategy} is not
+\code{"sequential"}, this argument defines the number of parallel processes
+to use, which can be critical when using a high-performance computing (HPC)
+cluster. This should be an integer value. The default behavior for
+\code{gWQS::gwqs} is to use all detected cores on a machine, but for many
+HPC use scenarios, this would call in cores that have not been allotted by
+the HPC scheduler, resulting in the submitted job being halted. For example,
+if one has requested 14 cores on a 28-core HPC queue, one would want to set
+\code{nworkers = 14}. If \code{nworkers} was greater than 14 in that case,
+the HPC job would be terminated. This argument defaults to \code{NULL}, in
+which case \code{length(future::availableWorkers())} will be used to
+determine the number of parallel processes to use.}
+
+\item{...}{(optional) Additional arguments to pass to the \code{gWQS::gwqs}
+function.}
 }
 \value{
-\code{wqs_pt} returns an object of class \code{"wqs_pt"}, which contains:
+\code{wqs_pt} returns an object of class \code{"wqs_pt"}, which
+contains:
 
 \item{perm_test}{List containing: (1) \code{pval}: permutation test p-value,
 (2) (linear WQS regression only) \code{testbeta1}: reference WQS coefficient
@@ -87,11 +107,11 @@ this function accepts \code{gwqs} objects made with the following families:
 currently able to accommodate stratified weights or WQS interaction terms
 (e.g., \code{y ~ wqs * sex}).
 
-The argument \code{boots} is the number of bootstraps for the WQS regression run
-in each permutation test iteration. Note that we may elect a bootstrap count
-\code{boots} lower than that specified in the model object for the sake of
-efficiency. If \code{boots} is not specified, then we will use the same
-bootstrap count in the permutation test WQS regression runs as that
+The argument \code{boots} is the number of bootstraps for the WQS regression
+run in each permutation test iteration. Note that we may elect a bootstrap
+count \code{boots} lower than that specified in the model object for the
+sake of efficiency. If \code{boots} is not specified, then we will use the
+same bootstrap count in the permutation test WQS regression runs as that
 specified in the model argument.
 
 The arguments \code{b1_pos} and \code{rs} should be consistent with the
@@ -103,17 +123,18 @@ required.
 library(gWQS)
 
 # mixture names
-PCBs <- names(wqs_data)[1:10] #1st 10 of the original 34 for quick computation
+PCBs <- names(wqs_data)[1:5] 
+ # Only using 1st 5 of the original 34 exposures for this quick example
 
 # create reference wqs object with 4 bootstraps
 wqs_main <- gwqs(yLBX ~ wqs, mix_name = PCBs, data = wqs_data, q = 10, 
-                 validation = 0, b = 4, b1_pos = TRUE, b_constr = FALSE,
+                 validation = 0, b = 3, b1_pos = TRUE, b_constr = FALSE,
                  plan_strategy = "multicore", family = "gaussian", seed = 16)
 # Note: We recommend niter = 1000 for the main WQS regression. This example
 # has a lower number of bootstraps to serve as a shorter test run.
 
 # run the permutation test
-perm_test_res <- wqs_pt(wqs_main, niter = 3, b1_pos = TRUE)
+perm_test_res <- wqs_pt(wqs_main, niter = 2, b1_pos = TRUE)
 
 # Note: The default value of niter = 200 is the recommended parameter value. 
 # This example has a lower niter in order to serve as a shorter test run. 
