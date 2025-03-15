@@ -89,7 +89,8 @@
 #' \code{family != "gaussian"} or if same number of bootstraps are used in 
 #' permutation test WQS regression runs as in the main run).}
 #' @importFrom parallelly availableWorkers
-#' @import gWQS ggplot2 viridis cowplot stats methods future
+#' @importFrom future plan
+#' @import gWQS ggplot2 viridis cowplot stats methods
 #' @export wqs_pt
 #' 
 #' @examples

@@ -86,7 +86,8 @@
 #' \item{gwqs_perm}{Permutation test reference gWQS object (NULL if model 
 #' \code{family != "gaussian"} or if same number of bootstraps are used in 
 #' permutation test WQS regression runs as in the main run).}
-#' @import gWQS future
+#' @importFrom future plan
+#' @import gWQS
 #' @export wqs_full_perm
 #'
 #' @examples
