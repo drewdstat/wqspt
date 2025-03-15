@@ -70,7 +70,7 @@
 #' if one has requested 14 cores on a 28-core HPC queue, one would want to set 
 #' \code{nworkers = 14}. If \code{nworkers} was greater than 14 in that case, 
 #' the HPC job would be terminated. This argument defaults to \code{NULL}, in 
-#' which case \code{length(future::availableWorkers())} will be used to 
+#' which case \code{length(parallelly::availableWorkers())} will be used to 
 #' determine the number of parallel processes to use. 
 #' @param ... (optional) Additional arguments to pass to the \code{gWQS::gwqs} 
 #' function.
@@ -88,6 +88,7 @@
 #' \item{gwqs_perm}{Permutation test reference gWQS object (NULL if model 
 #' \code{family != "gaussian"} or if same number of bootstraps are used in 
 #' permutation test WQS regression runs as in the main run).}
+#' @importFrom parallelly availableWorkers
 #' @import gWQS ggplot2 viridis cowplot stats methods future
 #' @export wqs_pt
 #' 

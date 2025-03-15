@@ -97,7 +97,7 @@ the HPC scheduler, resulting in the submitted job being halted. For example,
 if one has requested 14 cores on a 28-core HPC queue, one would want to set
 \code{nworkers = 14}. If \code{nworkers} was greater than 14 in that case,
 the HPC job would be terminated. This argument defaults to \code{NULL}, in
-which case \code{length(future::availableWorkers())} will be used to
+which case \code{length(parallelly::availableWorkers())} will be used to
 determine the number of parallel processes to use.}
 
 \item{...}{(optional) Additional arguments to pass to the \code{gWQS::gwqs}

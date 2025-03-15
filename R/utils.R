@@ -1,6 +1,7 @@
 #' @importFrom MASS glm.nb
 #' @importFrom pscl zeroinfl
 #' @importFrom car vif
+#' @importFrom parallelly availableWorkers
 #' @importFrom future.apply future_lapply
 #' @importFrom reshape2 melt
 #' @importFrom grid is.grob
