@@ -1,12 +1,14 @@
 #' @importFrom MASS glm.nb
 #' @importFrom pscl zeroinfl
 #' @importFrom car vif
+#' @importFrom parallelly availableWorkers
+#' @importFrom future plan
 #' @importFrom future.apply future_lapply
 #' @importFrom reshape2 melt
 #' @importFrom grid is.grob
 #' @importFrom utils flush.console
 #' @importFrom nnet multinom
-#' @import future gWQS
+#' @import gWQS
 
 #work around for errors in cowplot v1.1.3 get_legend when legend is 
 # not in the 'right' position
